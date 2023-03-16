@@ -1,0 +1,15 @@
+# Folders
+[Bb]uild/
+
+# Movie files
+*.mov
+*.MOV
+*.avi
+*.AVI
+
+# Image files
+*.jpg
+*.JPG
+*.jpeg
+*.png
+*.PNG

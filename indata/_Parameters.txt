@@ -1,0 +1,4 @@
+Distance between orange plates: 22 mm
+Filament breadth: 20.5 mm
+Brush body radius: 50 mm
+Rotational speed: 1/min
