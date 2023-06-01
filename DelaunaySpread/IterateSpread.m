@@ -1,20 +1,20 @@
-function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, num_iters, binWidth)
+function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par)
 
     m = median(EL_true);
-    hist_true = HistogramCurve(EL_true, binWidth);
+    hist_true = HistogramCurve(EL_true, par.binWidth);
     num_bins = length(hist_true.centers);
     EL_min = hist_true.centers(1);
     EL_max = hist_true.centers(end);
     
     % No iterations
-    if num_iters == 0
+    if par.num_iters == 0
         [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, [0, 10]);
     end
     
     % Iterative algorithm with decreasing step width 1/i
-    for iter = 1:num_iters
+    for iter = 1:par.num_iters
     
-        fprintf("Iteration: %d/%d\n", iter, num_iters)
+        fprintf("Iteration: %d/%d\n", iter, par.num_iters)
     
         [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, [0, 10]);
         hist_synth = HistogramCurve(EL_synth, hist_true.edges);

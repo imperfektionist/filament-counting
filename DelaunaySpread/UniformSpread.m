@@ -1,4 +1,21 @@
-function xy_synth = UniformSpread(xy_true, lim_true, lim_synth)
+function [xy_synth, par] = UniformSpread(xy_true, par)
+
+% Border points are missing
+lim_true = par.lim_true;
+
+% Synthetic brush dimensions
+lim_synth.xmin = 0;
+lim_synth.xmax = par.brushDiameter * pi;
+lim_synth.ymin = -par.brushWidth / 2;
+lim_synth.ymax = par.brushWidth / 2;
+
+par.lim_synth = lim_synth;  % save before padding
+
+% Add padding margin around synthetic distribution
+lim_synth.xmin = lim_synth.xmin - par.padWidth;
+lim_synth.xmax = lim_synth.xmax + par.padWidth;
+lim_synth.ymin = lim_synth.ymin - par.padWidth;
+lim_synth.ymax = lim_synth.ymax + par.padWidth;
 
 N_true = size(xy_true, 1);  % true filament number
 

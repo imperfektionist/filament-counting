@@ -16,7 +16,6 @@ for i = 1:size(DT,1)
 end
 edgeLengths(idx:end) = []; % Remove excess zeros
 medianLength = median(edgeLengths);
-
 minLength = medianLength * edgeThresh(1);
 maxLength = medianLength * edgeThresh(2);
 
