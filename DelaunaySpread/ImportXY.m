@@ -7,7 +7,7 @@ data = readmatrix(fullfile('UserData', csvFileName));
 % Extract the X and Y coordinates from the data
 x = data(:,1);
 y = data(:,2);
-xy = horzcat(x, y);  % make one matrix
+xy = horzcat(x, y) * par.scaleFactor;  % make one matrix
 
 % Step 1: Sort the points by y-value
 [~, y_idx] = sort(xy(:,2));

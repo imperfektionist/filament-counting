@@ -37,25 +37,34 @@ if par.plotDelaunaySynth
     title("Delaunay Triangulation (Synth)")
 end
 
+hist_true = HistogramCurve(EL_true, par.binWidth, par);
+hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
+m_true = median(EL_true);
+
 % Calculate and display histogram data
 if par.plotHistogram
-    hist_true = HistogramCurve(EL_true, par.binWidth);
-    hist_synth = HistogramCurve(EL_synth, hist_true.edges);
-    m_true = median(EL_true);
-
-    if par.smoothHistogram
-        hist_true.counts = smooth(hist_true.counts);
-        hist_synth.counts = smooth(hist_synth.counts);
-    end
-
     figure;
     plot(hist_true.centers, hist_true.counts, 'k')
     hold on 
     plot(hist_synth.centers, hist_synth.counts, 'r') 
     plot([m_true m_true], [0 max(hist_true.counts)], 'b--')       
     legend('True','Synth','Median')
-    r_squared = Rsq(hist_true, hist_synth);
-    title(sprintf("Neighbor Distance Histogram (R^2 = %.3f)", r_squared))
+    rsq = Rsquared(hist_true, hist_synth);
+    title(sprintf("Histogram (R^2 = %.3f)", rsq))
+    xlabel('Edge Length')
+    ylabel('Relative Occurrence')
+end
+
+% Calculate and display accumulated histogram data
+if par.plotAccumulated
+    figure;
+    plot(hist_true.centers, hist_true.accum, 'k')
+    hold on 
+    plot(hist_synth.centers, hist_synth.accum, 'r') 
+    plot([m_true m_true], [0 1], 'b--')       
+    legend('True','Synth','Median')
+    rsq = Rsquared(hist_true, hist_synth);
+    title(sprintf("Accum. Histogram (R^2 = %.3f)", rsq))
     xlabel('Edge Length')
     ylabel('Relative Occurrence')
 end

@@ -1,23 +1,26 @@
 function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par)
 
-    m = median(EL_true);
-    hist_true = HistogramCurve(EL_true, par.binWidth);
+    EL_thresh_synth = [0, 5];  % allow broad range for first few iterations
+
+    % Histogram of true edge lengths only calculated once    
+    hist_true = HistogramCurve(EL_true, par.binWidth, par);
     num_bins = length(hist_true.centers);
-    EL_min = hist_true.centers(1);
-    EL_max = hist_true.centers(end);
+    EL_min = hist_true.centers(1);  % shortest edge length
+    EL_max = hist_true.centers(end);  % longest edge length
+    m = median(EL_true);
     
-    % No iterations
-    if par.num_iters == 0
-        [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, [0, 10]);
-    end
+    % Initial triangulation (also for zero iterations)
+    [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
     
     % Iterative algorithm with decreasing step width 1/i
     for iter = 1:par.num_iters
-    
-        fprintf("Iteration: %d/%d\n", iter, par.num_iters)
-    
-        [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, [0, 10]);
-        hist_synth = HistogramCurve(EL_synth, hist_true.edges);
+
+        % Histogram of synthetc edge lengths different every iteration
+        hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
+
+        % Output progress and current residue
+        rsq = Rsquared(hist_true, hist_synth);
+        fprintf("Iteration: %d/%d (R² = %.3f)\n", iter, par.num_iters, rsq)  
     
         % Get neighbors of each point
         N = size(xy_synth, 1);
@@ -38,21 +41,26 @@ function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par)
             neighs = unique(neighbors{p});  % remove duplicates
     
             for n = 1:length(neighs)
+                % Position vectors
                 a = xy_synth(p,:);  % absolute center vector
                 b = xy_synth(neighs(n),:);  % absolute neighbor vector
                 c = b - a;  % relative vector
                 d = norm(c);  % relative vector magnitude
-                %s = c / d * (d - m)^2 * sign(d - m);  % shift vector
-                s = c * (1 - m / d);  % shift vector
+
+                % Based on edge length median -> simple but inaccurate
+                %s = c * (1 - m / d);  % shift vector
+                %xy_next(p,:) = xy_next(p,:) + s / iter;  % absolute shift
     
-                %idx = LinearMap(d, EL_min, EL_max, 1, num_bins);
-                %err = abs(hist_true.counts(idx) - hist_synth.counts(idx))^2;
-    
-                xy_next(p,:) = xy_next(p,:) + s / iter;  % absolute shift
-                %xy_next(p,:) = xy_next(p,:) + s * err * 1;  % absolute shift
+                % Based on accummulated edge length histogram -> more accurate
+                idx = LinearMap(d, EL_min, EL_max, 1, num_bins);  % bin number
+                epsilon = hist_true.accum(idx) - hist_synth.accum(idx);  % residue
+                s = c * (1 - m * (1 - epsilon) / d) / iter;  % shift vector
+                xy_next(p,:) = xy_next(p,:) + s;  % absolute shift
             end
         end
-        xy_synth = xy_next;    
+        xy_synth = xy_next;
+
+        [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
     end
 end
 

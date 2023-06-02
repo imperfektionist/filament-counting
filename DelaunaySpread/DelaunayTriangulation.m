@@ -35,4 +35,5 @@ outsideLength = unique(outsideLength);
 rowsToDelete = any(ismember(DT, outsideLength), 2);
 DT(rowsToDelete, :) = [];
 
-edgeLengths = edgeLengths(edgeLengths < 2);
+edgeLengths = edgeLengths(edgeLengths <= maxLength);
+edgeLengths = edgeLengths(edgeLengths >= minLength);
