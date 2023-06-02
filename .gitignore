@@ -1,6 +1,9 @@
 # Folders
 [Bb]uild/
 
+# Temp files
+*.asv
+
 # Export files
 *.csv
 
