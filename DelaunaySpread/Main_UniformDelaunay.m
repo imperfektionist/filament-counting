@@ -1,14 +1,15 @@
-%clear
-%close all
+clear
+close all
 
-% csvFileName = 'XY_105x0x0,6_SiC_N10377_df.txt';  % experimental input XY
-csvFileName = 'XY_105x0x1,1_SiC_N4026_df.txt';  % experimental input XY
+par.inFileTrue = 'XY_105x0x1,1_SiC_N4026_df1,126.txt';  % experimental input XY
+% par.inFileTrue = 'XY_105x0x0,6_SiC_N10377_df0,613.txt';  % experimental input XY
+par.importSynth = 1;  % import synthetic distribution instead of making it
 
+par.df = 1.126;             % filament diameter [mm] (set 1 for dependent)
+% par.df = 0.613;             % filament diameter [mm] (set 1 for dependent)
 par.scaleFactor = 1.0;      % scaling factor for all dimensions
 par.skimPercentX = 0.02;    % both left and right X
 par.skimPercentY = 0.05;    % both top and bottom Y
-par.outFile = 'output.csv';
-par.exportXY = 0;
 
 par.edgeThresh = [0.1 3];   % min and max triangle edge length [times median]
 par.padWidth = 5;           % padding margin later removed [mm]
@@ -17,22 +18,31 @@ par.brushDiameter = 100;    % diameter of brush tool [mm]
 
 par.num_iters = 25;         % number of spread iterations
 par.binWidth = 0.01;        % edge length bin width
-par.smoothHistogram = 1;    % smooth histogram for calculation and plots
+par.smoothHistogram = 0;    % smooth histogram for calculation and plots
+par.histLimits = [0 3.2];   % histogram x axis limits 
 
-par.plotXY = 1;
-par.plotDelaunayTrue = 1;
-par.plotDelaunaySynth = 1;
+par.plotXY = 0;
+par.plotDelaunayTrue = 0;
+par.plotDelaunaySynth = 0;
 par.plotHistogram = 1;
-par.plotAccumulated = 1;
+par.plotAccumulated = 0;
+
+par.exportXY = 0;
+par.exportHist = 1;
 
 % Import true filament distribution
-[xy_true, par] = ImportXY(csvFileName, par);
+[xy_true, par] = ImportTrueXY(par);
 
 % Delaunay triangulation of true filament distribution
 [DT_true, EL_true] = DelaunayTriangulation(xy_true, par.edgeThresh);
 
-% Initialize synthetic uniform distribution
-[xy_synth, par] = UniformSpread(xy_true, par);  % initially uniform
+if par.importSynth
+    [xy_synth, par] = ImportSynthXY(par);
+    par.num_iters = 0;
+else
+    % Initialize synthetic uniform distribution
+    [xy_synth, par] = UniformSpread(xy_true, par);  % initially uniform
+end
 
 % Iteratively spread out synthetic distribution
 [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par);
@@ -40,6 +50,8 @@ par.plotAccumulated = 1;
 % Plot distributions for visual analysis
 PlotAnalysis;
 
+% Export synthetic distribution and histograms
+ExportFiles(xy_synth, hist_true, hist_synth, par);
 
 
 

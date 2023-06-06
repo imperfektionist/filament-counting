@@ -1,8 +1,8 @@
 % IMPORT AND TRIM UNCOILED XY FILAMENT POSITIONS
-function [xy, par] = ImportXY(csvFileName, par)
+function [xy, par] = ImportTrueXY(par)
 
 % Read the CSV file using the readmatrix function
-data = readmatrix(fullfile('UserData', csvFileName));
+data = readmatrix(fullfile('UserData', par.inFileTrue));
 
 % Extract the X and Y coordinates from the data
 x = data(:,1);
@@ -36,7 +36,3 @@ lim.xmax = max(xy(:,1));
 lim.ymin = min(xy(:,2));
 lim.ymax = max(xy(:,2));
 par.lim_true = lim;
-
-if par.exportXY
-    writematrix(xy, fullfile('UserData', par.outFile)) %#ok<*UNRCH> 
-end
