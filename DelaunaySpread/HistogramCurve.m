@@ -9,7 +9,8 @@ else  % argin is bin edges
 end
 
 if par.smoothHistogram
-    counts = smooth(counts)';
+    %counts = smoothdata(counts, 'SmoothingFactor', par.smoothWidth)';
+    counts = smoothdata(counts, 'SmoothingFactor', par.smoothWidth);
 end
 
 binWidth = edges(2) - edges(1);  % works for all argins
