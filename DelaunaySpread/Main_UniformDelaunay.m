@@ -3,7 +3,7 @@ clear
 
 par.inFileTrue = 'XY_105x0x1,1_SiC_N4026_df1,126.txt';  % experimental input XY
 % par.inFileTrue = 'XY_105x0x0,6_SiC_N10377_df0,613.txt';  % experimental input XY
-par.importSynth = 1;  % import synthetic distribution instead of making it
+par.importSynth = 0;  % import synthetic distribution instead of making it
 
 par.df = 1.114;             % filament diameter [mm] (set 1 for dependent)
 % par.df = 0.628;             % filament diameter [mm] (set 1 for dependent)
@@ -18,18 +18,18 @@ par.brushDiameter = 100;    % diameter of brush tool [mm]
 
 par.num_iters = 25;         % number of spread iterations
 par.binWidth = 0.01;        % edge length bin width
-par.smoothHistogram = 1;    % smooth histogram for calculation and plots
+par.smoothHistogram = 1;    % do smooth histogram for calculation and plots
 par.smoothWidth = 0.01;      % moving average filter width
 par.histLimits = [0 3.2];   % histogram x axis limits 
 
-par.plotXY = 0;
-par.plotDelaunayTrue = 0;
-par.plotDelaunaySynth = 0;
-par.plotHistogram = 1;
-par.plotAccumulated = 0;
+par.plotXY = 1;             % figure for XY filament positions
+par.plotDelaunayTrue = 1;   % figure for triangulation of actual distribution
+par.plotDelaunaySynth = 1;  % figure for triangulation of synthetic distribution
+par.plotHistogram = 1;      % figure for histogram of filament distances
+par.plotAccumulated = 0;    % figure for cumsum histogram of filament distances
 
-par.exportXY = 0;
-par.exportHist = 1;
+par.exportXY = 0;           % export XY filament positions as textfile
+par.exportHist = 0;         % export histogram as textfile
 
 % Import true filament distribution
 [xy_true, par] = ImportTrueXY(par);
