@@ -1,13 +1,16 @@
 % clear
 clc
+close all
 
 folderName = 'C:\Data\FilamentCounting\Linienlaser';
-csvFileName = 'BU2265_WSS_4U_L.csv';
+csvFileName = 'BU2281_WSS_2U_L.csv';
 
-doImport = 0;  % import file or use workspace
+doImport = 1;  % import file or use workspace
+doTangentialDetrend = 1;
+doAxialDetrend = 0;
 
 if doImport
-    disp(["Importing " csvFileName])
+    fprintf("Importing %s\n", csvFileName)
     
     % Create the full file path using 'fullfile'
     fullFilePath = fullfile(folderName, csvFileName);
@@ -47,37 +50,47 @@ maxVal = max(dataNorm(:));
 minVal = min(dataNorm(:));
 
 maxThresh = 0.95 * maxVal;
-idxLeft = find(max(dataNorm) >= maxThresh, 1, 'first');
-idxRight = find(max(dataNorm) >= maxThresh, 1, 'last');
+idxLeft = find(max(dataNorm) >= maxThresh, 1, 'first') + 200;
+idxRight = find(max(dataNorm) >= maxThresh, 1, 'last') - 100;
 
-dataNorm = dataNorm(:,idxLeft:idxRight);
+dataNorm = dataNorm(:,idxLeft:idxRight);  % strip to one circumference
 
-minVal = -3;
-maxVal = 1.5;
+if doTangentialDetrend
+    dataNorm = detrend2(dataNorm, 1, 2);  % tangential (squared)
+end
+if doAxialDetrend
+    dataNorm = detrend2(dataNorm, 2, 1);  % axial (linear)
+end
+
+minVal = -0.5;
+maxVal = 0.5;
 
 dataNorm(dataNorm < minVal) = minVal;
 dataNorm(dataNorm > maxVal) = maxVal;
 
 dataNorm = (dataNorm - minVal) / (maxVal - minVal);
 
+% dataNorm(dataNorm > 0.95) = 0;
+
 % idxUpper = find(any(dataNorm,2), 1, 'first')
 % idxLower = find(any(dataNorm,2), 1, 'last')
 
 % histogram(dataNorm(:), 100)
+
+maxVal = max(dataNorm(:));
+minVal = min(dataNorm(:));
+dataNorm = (dataNorm - minVal) / (maxVal - minVal);
 
 resolution = 100;  % in px/mm
 brushDiameter = 105;
 circumference = brushDiameter * pi;
 
 axDotsNeeded = 16 * 200;
-tangDotsNeeded = circumference * resolution * 1.15;
+tangDotsNeeded = circumference * resolution * 1.5;
 
-maxVal = max(dataNorm(:));
-minVal = min(dataNorm(:));
-dataNorm = (dataNorm - minVal) / (maxVal - minVal);
+% dataNorm = imbinarize(dataNorm);
 
-dataNorm = imbinarize(dataNorm);
-
+% Stretch image to new resolution (equal axes)
 dataNorm = imresize(dataNorm, [axDotsNeeded tangDotsNeeded]);
 % dataNorm = histeq(dataNorm);
 
@@ -95,6 +108,8 @@ dataNorm = imresize(dataNorm, [axDotsNeeded tangDotsNeeded]);
 
 outputFileName = 'laser_test.png';  % Replace with your desired filename
 imwrite(dataNorm, outputFileName);
+winopen(outputFileName);
+
 % close all
 
 disp("All done!")
