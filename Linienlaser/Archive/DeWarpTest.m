@@ -2,8 +2,8 @@ function I = DeWarpTest(image)
 % if image is stretched and shows ellipses instead of circles
 % unstretch the image by finding the correct width
 
-xMin = round(0.7 * size(image,2));  % minimum new realistic width
-xMax = round(1.4 * size(image,2));  % maximum new realistic width
+xMin = round(0.8 * size(image,2));  % minimum new realistic width
+xMax = round(1.2 * size(image,2));  % maximum new realistic width
 
 
     function y = FindHough(x)

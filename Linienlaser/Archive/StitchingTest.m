@@ -2,7 +2,8 @@
 % https://de.mathworks.com/help/vision/ug/feature-based-panoramic-image-stitching.html
 
 clear
-clc
+% clc
+resizeFactor = 0.5;
 
 % Load images.
 buildingDir = "UnstitchedData";
@@ -37,6 +38,11 @@ for n = 2:numImages
         
     % Read I(n).
     I = readimage(buildingScene, n);
+
+    % Resize image    
+    newWidth = size(I, 2) * resizeFactor;
+    newHeight = size(I, 1) * resizeFactor;    
+    I = imresize(I, [newHeight, newWidth]);
     
     % Convert image to grayscale.
     grayImage = im2gray(I);    
@@ -104,7 +110,7 @@ width  = round(xMax - xMin);
 height = round(yMax - yMin);
 
 % Initialize the "empty" panorama.
-panorama = zeros([height width 3], 'like', I);
+panorama = zeros([height width], 'like', I);
 
 % Use imwarp to map images into the panorama and use vision.
 % AlphaBlender to overlay the images together.
@@ -131,15 +137,15 @@ for i = 1:numImages
     panorama = step(blender, panorama, warpedImage, mask);
 end
 
-% figure
-% imshow(panorama)
+figure
+imshow(panorama)
 
-panorama_gray = CropToROI(panorama);
+% panorama_gray = CropToROI(panorama);
 
 % figure
 % imshow(panorama_gray)
 
-panorama_dewarped = DeWarpTest(panorama_gray);
+% panorama_dewarped = DeWarpTest(panorama_gray);
 
 figure
 imshow(panorama_dewarped)
