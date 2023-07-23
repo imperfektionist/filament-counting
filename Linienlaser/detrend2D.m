@@ -1,4 +1,4 @@
-function data = detrend2D(data, cellSize)
+function data = detrend2D(data, cellSize, plotFilterMask)
 
 envelope = zeros(size(data));
 
@@ -16,7 +16,6 @@ for y = 1:cellSize:height
         v_right = Clamp(x + cellSize, 1, width);
 
         envelope(u_up:u_down,v_left:v_right) = median(data(u_up:u_down,v_left:v_right),"all");
-%         envelope(y,x) = mean(data(u_up:u_down,v_left:v_right),"all");
 
     end
     waitbar(y/height, wb, sprintf("Detrending %d%%", round(y/height*100)));
@@ -25,10 +24,12 @@ end
 close(wb)
 small_size = [round(size(data,1)/cellSize) round(size(data,2)/cellSize)];
 envelope = imresize(envelope,small_size,'method','box');
-envelope = imresize(envelope,size(data),'method','bicubic');
+envelope = imresize(envelope,size(data),'method','bilinear');
 
-imwrite(envelope, "envelope.png");
-winopen("envelope.png");
+if plotFilterMask
+    imwrite(envelope, "envelope.png");
+    winopen("envelope.png");
+end
 
 function val = Clamp(val, a, b)
     if val < a

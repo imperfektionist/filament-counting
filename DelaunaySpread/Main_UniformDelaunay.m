@@ -1,9 +1,10 @@
 clear
 % close all
 
-par.inFileTrue = 'XY_105x0x1,1_SiC_N4026_df1,126.txt';  % experimental input XY
+% par.inFileTrue = 'XY_105x0x1,1_SiC_N4026_df1,126.txt';  % experimental input XY
 % par.inFileTrue = 'XY_105x0x0,6_SiC_N10377_df0,613.txt';  % experimental input XY
-par.importSynth = 0;  % import synthetic distribution instead of making it
+par.inFileTrue = 'BU2281.txt';
+par.importSynth = 1;  % import synthetic distribution instead of making it
 
 par.df = 1.114;             % filament diameter [mm] (set 1 for dependent)
 % par.df = 0.628;             % filament diameter [mm] (set 1 for dependent)
