@@ -39,32 +39,36 @@ end
 
 hist_true = HistogramCurve(EL_true, par.binWidth, par);
 hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
-m_true = median(EL_true);
+m_true = median(EL_true) / par.df;
+below_one = HistBelowOne(hist_true, par);
+rsq = Rsquared(hist_true, hist_synth);
 
 % Calculate and display histogram data
 if par.plotHistogram
     figure;
-    plot(hist_true.centers, hist_true.counts, 'k')
+    plot(hist_true.centers / par.df, hist_true.counts, 'k')
     hold on 
-    plot(hist_synth.centers, hist_synth.counts, 'r') 
-    plot([m_true m_true], [0 max(hist_true.counts)], 'b--')       
-    legend('True','Synth','Median')
-    rsq = Rsquared(hist_true, hist_synth);
+    plot(hist_synth.centers / par.df, hist_synth.counts, 'r') 
+    plot([m_true m_true], [0 max(hist_true.counts)], 'b--')
+    plot([1 1], [0 max(hist_true.counts)], 'k--')
+    xlim(par.histLimits);
+    legend('True','Synth','Median',sprintf('%.1f %%',below_one))    
     title(sprintf("Histogram (R^2 = %.3f)", rsq))
-    xlabel('Edge Length')
-    ylabel('Relative Occurrence')
+    xlabel('Filament Spacing [mm/d_f]')
+    ylabel('Relative Occurrence [-]')
 end
 
 % Calculate and display accumulated histogram data
 if par.plotAccumulated
     figure;
-    plot(hist_true.centers, hist_true.accum, 'k')
-    hold on 
-    plot(hist_synth.centers, hist_synth.accum, 'r') 
-    plot([m_true m_true], [0 1], 'b--')       
-    legend('True','Synth','Median')
-    rsq = Rsquared(hist_true, hist_synth);
+    plot(hist_true.centers / par.df, hist_true.accum, 'k')
+    hold on
+    plot(hist_synth.centers / par.df, hist_synth.accum, 'r') 
+    plot([m_true m_true], [0 1], 'b--')
+    plot([1 1], [0 1], 'k--')
+    xlim(par.histLimits);
+    legend('True','Synth','Median',sprintf('%.1f %%',below_one))
     title(sprintf("Accum. Histogram (R^2 = %.3f)", rsq))
-    xlabel('Edge Length')
-    ylabel('Relative Occurrence')
+    xlabel('Filament Spacing [mm/d_f]')
+    ylabel('Relative Occurrence [-]')
 end

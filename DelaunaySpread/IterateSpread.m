@@ -20,7 +20,11 @@ function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par)
 
         % Output progress and current residue
         rsq = Rsquared(hist_true, hist_synth);
-        fprintf("Iteration: %d/%d (R² = %.3f)\n", iter, par.num_iters, rsq)  
+        fprintf("Iteration: %d/%d (R² = %.3f)\n", iter, par.num_iters, rsq)
+
+        %fileID = fopen('rsq_opt.txt', 'a');
+        %fprintf(fileID, '%f\n', rsq);
+        %fclose(fileID);
     
         % Get neighbors of each point
         N = size(xy_synth, 1);
