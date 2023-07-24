@@ -3,14 +3,14 @@ clear
 
 % par.inFileTrue = 'XY_105x0x1,1_SiC_N4026_df1,126.txt';  % experimental input XY
 % par.inFileTrue = 'XY_105x0x0,6_SiC_N10377_df0,613.txt';  % experimental input XY
-par.inFileTrue = 'BU2281.txt';
+par.inFileTrue = 'BU2281_LR_COLL.txt';
 par.importSynth = 1;  % import synthetic distribution instead of making it
 
 par.df = 1.114;             % filament diameter [mm] (set 1 for dependent)
 % par.df = 0.628;             % filament diameter [mm] (set 1 for dependent)
 par.scaleFactor = 1.0;      % scaling factor for all dimensions
-par.skimPercentX = 0.02;    % both left and right X
-par.skimPercentY = 0.05;    % both top and bottom Y
+par.skimPercentX = 0;%.02;    % both left and right X
+par.skimPercentY = 0;%.05;    % both top and bottom Y
 
 par.edgeThresh = [0.1 3];   % min and max triangle edge length [times median]
 par.padWidth = 5;           % padding margin later removed [mm]
@@ -23,7 +23,7 @@ par.smoothHistogram = 1;    % do smooth histogram for calculation and plots
 par.smoothWidth = 0.01;      % moving average filter width
 par.histLimits = [0 3.2];   % histogram x axis limits 
 
-par.plotXY = 1;             % figure for XY filament positions
+par.plotXY = 0;             % figure for XY filament positions
 par.plotDelaunayTrue = 1;   % figure for triangulation of actual distribution
 par.plotDelaunaySynth = 1;  % figure for triangulation of synthetic distribution
 par.plotHistogram = 1;      % figure for histogram of filament distances

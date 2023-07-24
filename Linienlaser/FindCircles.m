@@ -1,5 +1,5 @@
 
-inPath = 'UserData/BU2281_WSS_2U_R.png';
+inPath = 'UserData/BU2281_WSS_2U_L.png';
 
 diameter = 55;  % The approximate diameter of the circles you want to detect
 erodeSize = 0.0;  % ratio of diameter

@@ -1,4 +1,4 @@
-function data = TrimLaserImage(data, fileName, maxThresh)
+function data = trimLaserImage(data, fileName, maxThresh)
 
 height = size(data,1);
 width = size(data,2);
