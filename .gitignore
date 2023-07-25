@@ -6,6 +6,7 @@
 
 # Export files
 *.csv
+#*.zip
 
 # Movie files
 *.mov

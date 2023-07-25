@@ -1,26 +1,27 @@
-
+clear
 
 userPath = "UserData";
-csvFiles = {'BU2281_WSS_2U_L_hough.txt', 'BU2281_WSS_2U_R_hough.txt'};
-outFile = 'BU2281_WSS_2U_LR_stitched.txt';
+csvFiles = {'BU6981_2U_L_hough.txt', 'BU6981_2U_R_hough.txt'};
+outFile = 'BU6981_2U_LR_stitched.txt';
 
 vertSize = 800; % vertical image size [px]
 sizeFac = 2;  % larger than 1 if image was shrunk during processing
-vertShift = 785;  % robot shift between L and R [px]
+vertShift = 760;  % robot shift between L and R [px]
 
-cutoff_hi = 2280;  % discard all filaments above [px]
-cutoff_lo = 300;  % discard all filaments below [px]
+cutoff_hi = 3280;  % discard all filaments above [px]
+cutoff_lo = 200;  % discard all filaments below [px]
 
-minDist = 60;  % minimum px between two filaments (otherwise interpolate)
+minDist = 20;  % minimum px between two filaments (otherwise interpolate)
 
 diameterBody = 100;  % brush body [mm]
 diameterOuter = 105;  % diameter of water jet circle [mm]
 
 doDeletedPoints = 1;  % import file with points to delete
 doAddedPoints = 1;  % import file with additional points
-dupliDist = 30;  % maximum px for manual duplicate deletion
+dupliDist = 10;  % maximum px for manual duplicate deletion
 
-plotSeparateFiles = 0;  % 1: plot overlap, 0: plot stitched
+doInterpolate = 0;  % 1: overlap and interpolate both sides, 0: strict cut
+plotSeparateFiles = 1;  % 1: plot overlap, 0: plot stitched
 
 wb = waitbar(0, "Processing circles...");
 
@@ -65,7 +66,13 @@ XY_hi(:,2) = XY_hi(:,2) + vertShift;
 XY_lo = XY_lo(XY_lo(:,2) > cutoff_lo, :);
 XY_hi = XY_hi(XY_hi(:,2) < cutoff_hi, :);
 
-centers = vertcat(XY_hi, XY_lo);  % concatenate upper and lower half
+if ~doInterpolate  % cut strictly into two halfs which do not overlap
+    thresh = median(vertcat(XY_hi(:,2), XY_lo(:,2)));
+    XY_lo = XY_lo(XY_lo(:,2) < thresh, :);
+    XY_hi = XY_hi(XY_hi(:,2) >= thresh, :);
+end
+
+centers = vertcat(XY_hi, XY_lo);  % concatenate both halfs
 
 distMatrix = squareform(pdist(centers));
 n = size(centers, 1);
@@ -99,11 +106,12 @@ fclose(fileID);
 
 figure;
 if plotSeparateFiles
-    plot(XY_hi(:,1), XY_hi(:,2), 'ro')
+    plot(XY_hi(:,1), XY_hi(:,2), 'r.')
     hold on
-    plot(XY_lo(:,1), XY_lo(:,2), 'bo')
+    plot(XY_lo(:,1), XY_lo(:,2), 'b.')
 else
-    plot(centers(:,1), centers(:,2), 'ko')
+    plot(centers(:,1), centers(:,2), 'k.')
 end
 
+fprintf("Filamentanzahl: %d\n", size(centers,1))
 

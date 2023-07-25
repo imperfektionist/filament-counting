@@ -1,6 +1,6 @@
-clear
+% clear
 
-inPath = 'UserData/BU2281_WSS_2U_L_hough.png';
+inPath = 'UserData/BU6981_2U_L_hough.png';
 image = imread(inPath);
 
 aspect = 2560/1440;
@@ -23,8 +23,8 @@ for i = 1:singleWidth:width
     end
     subImage = image(:,i:i+singleWidth-1,:);
 
-    xy_add = NaN(1000,2);
-    xy_del = NaN(1000,2);
+    xy_add = NaN(2000,2);
+    xy_del = NaN(2000,2);
     i_del = 1; i_add = 1;
     
     click = [0, 0];
@@ -35,7 +35,7 @@ for i = 1:singleWidth:width
     while true        
 
         click = winput(1);
-
+        
         if isempty(click)
             % Store points for current subimage
             rows = any(isnan(xy_del),2);
@@ -47,23 +47,25 @@ for i = 1:singleWidth:width
             total_add = vertcat(total_add, xy_add); %#ok<*AGROW> 
 
             break;
+        else
+            fprintf("X: %.0f, Y: %.0f\n",click(1), click(2))
         end
 
-        if i_del > 1
-            duplicate = norm(xy_del(i_del-1,:) - click) < 20;
+        if i_add > 1
+            duplicate = norm(xy_add(i_add-1,:) - click) < 20;
         else
             duplicate = false;
         end
 
         if duplicate
-            xy_del(i_del-1,:) = NaN(1,2);
-            i_del = i_del - 1;
+            xy_add(i_add-1,:) = NaN(1,2);
+            i_add = i_add - 1;
 
-            xy_add(i_add,:) = click;
-            i_add = i_add + 1;
-        else    
             xy_del(i_del,:) = click;
             i_del = i_del + 1;
+        else    
+            xy_add(i_add,:) = click;
+            i_add = i_add + 1;
         end
 
         hold off

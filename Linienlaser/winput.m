@@ -312,11 +312,11 @@ function crossHair = createCrossHair(fig)
 
 if isWebFigureType(fig, 'UIFigure')
     for k = 1:4
-        crossHair(k) = uilabel(fig, 'Visible', 'off', 'BackgroundColor', [1 1 1], 'HandleVisibility', 'off'); %#ok<AGROW>
+        crossHair(k) = uilabel(fig, 'Visible', 'off', 'BackgroundColor', [1 0 1], 'HandleVisibility', 'off'); %#ok<AGROW>
     end
 else
     for k = 1:4
-        crossHair(k) = uicontrol(fig, 'Style', 'text', 'Visible', 'off', 'Units', 'pixels', 'BackgroundColor', [1 1 1], 'HandleVisibility', 'off', 'HitTest', 'off'); %#ok<AGROW>
+        crossHair(k) = uicontrol(fig, 'Style', 'text', 'Visible', 'off', 'Units', 'pixels', 'BackgroundColor', [1 0 1], 'HandleVisibility', 'off', 'HitTest', 'off'); %#ok<AGROW>
     end
 end
 
