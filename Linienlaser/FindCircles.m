@@ -1,20 +1,30 @@
+% clear
+close all
 
-inPath = 'UserData/BU6981_2U_L.png';
+% inPath = 'UserData/BU6981_2U_L.png';
+inPath = 'UserData/BU6981_2U_R.png';
 
-diameter = 64/2;  % The approximate diameter of the circles you want to detect
-erodeSize = 0.0;  % ratio of diameter
+diameter = 56;  % The approximate diameter of the circles you want to detect
+erodeSize = 0;  % size of erosion disk
 sensitivity = 0.995;  % Adjust this parameter to control circle detection sensitivity
-radiiRange = [round(0.45 * diameter), round(0.6 * diameter)]; % Allowable range of radii
-minDist = 0.8 * diameter;
+radiiRange = [round(0.45 * diameter), round(0.65 * diameter)]; % Allowable range of radii
+minDist = 0.8 * diameter;  % discard weaker circles if too close to stronger circles
+stretch = 1;  % stretch image horizontally
 
 discardYBelow = 0;  % Set 0 for RIGHT side (50)
-discardYAbove = 660;  % Set 3200 for LEFT side
+discardYAbove = 800;  % Set 3200 for LEFT side
 
 image = imread(inPath);
-image_bin = imbinarize(image);
 
-% erodeDiameter = round(diameter * erodeSize);
-% se = strel('disk', erodeDiameter);
+% image_bin = highpassFilter(image);
+
+image_bin = imbinarize(image);
+image_bin = imresize(image_bin, size(image) .* [1 stretch], "method", "bilinear");
+
+% imwrite(double(image_bin), "tmp.png");
+% winopen("tmp.png");
+
+% se = strel('disk', erodeSize);
 % image_bin = imerode(image_bin, se);
 
 wb = waitbar(0, "Finding circles...");
@@ -61,6 +71,7 @@ centers(any(isnan(centers), 2), :) = [];  % remove weak close
 radii(any(isnan(radii), 2), :) = [];  % remove weak close
 
 histogram(radii)
+centers(:,1) = centers(:,1) / stretch;  % unstretch image
 
 outImage = strrep(inPath, ".png", "_hough.png");
 outXY = strrep(outImage, ".png", ".txt");
@@ -69,6 +80,8 @@ writematrix(centers, outXY, 'Delimiter', 'tab');
 % Create a new image and mark the detected circles
 markedImage = image;
 numCircles = size(centers, 1);
+fprintf("Filaments found: %d\n", numCircles)
+
 for i = 1:numCircles
     center = centers(i, :);
     radius = radii(i);

@@ -1,4 +1,4 @@
-clear
+% clear
 
 userPath = "UserData";
 csvFiles = {'BU6981_2U_L_hough.txt', 'BU6981_2U_R_hough.txt'};
@@ -6,19 +6,21 @@ outFile = 'BU6981_2U_LR_stitched.txt';
 
 vertSize = 800; % vertical image size [px]
 sizeFac = 2;  % larger than 1 if image was shrunk during processing
-vertShift = 760;  % robot shift between L and R [px]
+vertShift = 745;  % robot shift between L and R [px]
 
-cutoff_hi = 3280;  % discard all filaments above [px]
-cutoff_lo = 200;  % discard all filaments below [px]
+cutoff_hi = 3200;  % discard all filaments above [px]
+cutoff_lo = 0;  % discard all filaments below [px]
 
-minDist = 20;  % minimum px between two filaments (otherwise interpolate)
+minDist = 40;  % minimum px between two filaments (otherwise interpolate)
+xStretchHi = 0.98;
+xStretchLo = 1;
 
 diameterBody = 100;  % brush body [mm]
-diameterOuter = 105;  % diameter of water jet circle [mm]
+diameterOuter = 150;  % diameter of water jet circle [mm]
 
 doDeletedPoints = 1;  % import file with points to delete
 doAddedPoints = 1;  % import file with additional points
-dupliDist = 10;  % maximum px for manual duplicate deletion
+dupliDist = 15;  % maximum px for manual duplicate deletion
 
 doInterpolate = 0;  % 1: overlap and interpolate both sides, 0: strict cut
 plotSeparateFiles = 1;  % 1: plot overlap, 0: plot stitched
@@ -65,6 +67,9 @@ XY_hi(:,2) = XY_hi(:,2) + vertShift;
 
 XY_lo = XY_lo(XY_lo(:,2) > cutoff_lo, :);
 XY_hi = XY_hi(XY_hi(:,2) < cutoff_hi, :);
+
+XY_hi(:,1) = XY_hi(:,1) * xStretchHi;
+XY_lo(:,1) = XY_lo(:,1) * xStretchLo;
 
 if ~doInterpolate  % cut strictly into two halfs which do not overlap
     thresh = median(vertcat(XY_hi(:,2), XY_lo(:,2)));

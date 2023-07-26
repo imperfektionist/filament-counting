@@ -1,4 +1,4 @@
-function data = trimLaserImage(data, fileName, maxThresh)
+function [data, idxLeft, idxRight] = trimLaserImage(data, fileName, maxThresh)
 
 height = size(data,1);
 width = size(data,2);
@@ -15,10 +15,9 @@ elseif maxThresh == -1  % manual clicking of trim intervals
     imshow(data)
     click = winput(1);
     idxLeft = round(click(1));
-    fprintf("Left margin: %d\n", idxLeft);
+        
     click = winput(1);
-    idxRight = round(click(1));
-    fprintf("Right margin: %d\n", idxRight);
+    idxRight = round(click(1));   
     close(gcf);
     
 
@@ -41,6 +40,9 @@ else  % auto maximum trim intervals
     % Go from row center forward to find right flank
     idxRight = halfWidth + find(row(halfWidth+1:width) >= maxVal, 1, 'first');
 end
+
+fprintf("Left margin: %d of %d\n", idxLeft, width);
+fprintf("Right margin: %d of %d\n", idxRight, width);
     
 % Trim data to new interval
 data = data(:,idxLeft:idxRight);

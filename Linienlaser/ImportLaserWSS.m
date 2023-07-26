@@ -1,3 +1,5 @@
+% DEPRECATE!!! USE importLaserBrush.m IF POSSIBLE!!!
+
 % clear
 clc
 close all
@@ -5,7 +7,7 @@ close all
 userPath = "UserData";
 dataPath = 'C:\Data\FilamentCounting\Linienlaser';
 
-csvFiles = {'BU2265_WSS_2U_L.csv'};
+csvFiles = {'BU2265_WSS_2U_R.csv'};
 
 brushDiameter = 105;  % brush outer diameter [mm]
 resolution = 50;  % image output resolution [px/mm] (sensor: 200)
@@ -13,6 +15,8 @@ resolution = 50;  % image output resolution [px/mm] (sensor: 200)
 trimThresh = 0.95;  % 1.0 => maximum value of initial image
 filterSize = 150;  % median filter cell height
 
+initialCutoff = -5;  % set all depths NaN
+initialHeighten = 0;  % add to all datapoints to make positive
 cutoffHeight = 0.45; % Symmetrical cutoff, values outside are set to this
 lowerThreshold = 0.2; % Set values below this threshold to 0
 upperThreshold = 0.7; % Set values above this threshold to 0  
@@ -53,12 +57,18 @@ for f = 1:length(csvFiles)
     image = dataArray';  % transpose because image needs to be horizontal
     
     % Centerize data around median
-    image = image - median(image,"all");
-
-    % Trim image to one circumference, marked by the highest point
-    image = trimLaserImage(image, csvFileName, trimThresh);
+    %image = image - median(image,"all");
 
     image0 = image;  % to save later
+
+    % Trim image to one circumference, marked by the highest point
+    [image, idxLeft, idxRight] = trimLaserImage(image, csvFileName, trimThresh);
+
+    % Delete all values below cutoff
+    image(image < initialCutoff) = NaN;
+
+    % Add certain height before proceeding
+    image = image + initialHeighten;
 
     if doDetrend % detrend -> subtract bilinear median mask
         image = detrend2D(image, filterSize, plotFilterMask, fullfile(userPath, csvFileName));
@@ -112,5 +122,5 @@ end
 
 disp("All done!")
 
-
+clear f 
 
