@@ -4,8 +4,8 @@ clear
 % par.inFileTrue = 'XY_105x0x1,1_SiC_N4026_df1,126.txt';  % experimental input XY
 % par.inFileTrue = 'XY_105x0x0,6_SiC_N10377_df0,613.txt';  % experimental input XY
 par.inFileTrue = 'BU2281_LR_COLL.txt';
-par.importSynth = 1;  % import synthetic distribution instead of making it
-par.useVectorIterate = 0;  % use vector iteration (1) or VAE (0)
+par.importSynth = 0;  % import synthetic distribution instead of making it
+par.useVectorIterate = 1;  % use vector iteration (1) or VAE (0)
 
 par.df = 1.114;             % filament diameter [mm] (set 1 for dependent)
 % par.df = 0.628;             % filament diameter [mm] (set 1 for dependent)
@@ -27,7 +27,7 @@ par.histLimits = [0 3.2];   % histogram x axis limits
 par.plotXY = 0;             % figure for XY filament positions
 par.plotDelaunayTrue = 1;   % figure for triangulation of actual distribution
 par.plotDelaunaySynth = 1;  % figure for triangulation of synthetic distribution
-par.plotHistogram = 1;      % figure for histogram of filament distances
+par.plotHistogram = 0;      % figure for histogram of filament distances
 par.plotAccumulated = 0;    % figure for cumsum histogram of filament distances
 
 par.exportXY = 0;           % export XY filament positions as textfile

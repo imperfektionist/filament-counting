@@ -1,10 +1,47 @@
 % clear
 
-inPath = 'UserData/BU6981_2U_L_hough.png';
+inPath = 'UserData/BU2281_WSS_2U_L_hough.png';
 image = imread(inPath);
 
-deleteFirst = 0;  % click once for delete, twice for add
+deleteFirst = 1;  % click once for delete, twice for add
 aspect = 2560/1440;
+markerSize = 20;
+lw = 3;  % lineWidth
+
+delFile = strrep(inPath, ".png", "_delPoints.txt");
+addFile = strrep(inPath, ".png", "_addPoints.txt");
+
+% Insert deleted (and added) points if a file already exists
+if exist(delFile, "file")
+    if deleteFirst            
+        total_1st = readmatrix(delFile);
+        total_2nd = readmatrix(addFile);
+        for i = 1:size(total_1st,1)
+            image = insertMarker(image, total_1st(i,:), 'x', 'Color', 'cyan', "Size", markerSize);            
+        end
+        for i = 1:size(total_2nd,1)
+            image = insertMarker(image, total_2nd(i,:), '+', 'Color', 'cyan', "Size", markerSize);
+        end
+    else  % add first
+        total_1st = readmatrix(addFile);
+        total_2nd = readmatrix(delFile);
+        for i = 1:size(total_1st,1)
+            image = insertMarker(image, total_1st(i,:), '+', 'Color', 'cyan', "Size", markerSize);            
+        end
+        for i = 1:size(total_2nd,1)
+            image = insertMarker(image, total_2nd(i,:), 'x', 'Color', 'cyan', "Size", markerSize);
+        end
+    end
+else
+    total_1st = [];
+    total_2nd = [];
+end
+
+% plot(xy_1st(:,1), xy_1st(:,2),  "g.", "Marker", "x", "MarkerSize", markerSize, "LineWidth", lw);
+% plot(xy_2nd(:,1), xy_2nd(:,2), "g.", "Marker", "+", "MarkerSize", markerSize, "LineWidth", lw);
+% 
+% plot(xy_1st(:,1), xy_1st(:,2),  "g.", "Marker", "+", "MarkerSize", markerSize, "LineWidth", lw);
+% plot(xy_2nd(:,1), xy_2nd(:,2), "g.", "Marker", "x", "MarkerSize", markerSize, "LineWidth", lw);
 
 height = size(image,1);
 width = size(image,2);
@@ -14,17 +51,21 @@ singleWidth = round(height * aspect);
 % figure('units','normalized','outerposition',[0 0 1 1])
 figure;
 
-total_1st = [];
-total_2nd = [];
-
-for i = 1:singleWidth:width
+i = 1;
+% for i = 1:singleWidth:width
+next_cycle = 1;
+while next_cycle
 
     fprintf("Frame %d of %d\n",i,width);
 
-    if i+singleWidth > width
-        break;
+    i_end = i + singleWidth - 1;
+    
+    if i_end > width  % superseded end
+        i_end = width;  % cut to end
+        next_cycle = 0;  % last iteration
     end
-    subImage = image(:,i:i+singleWidth-1,:);
+
+    subImage = image(:,i:i_end,:);
 
     xy_1st = NaN(2000,2);
     xy_2nd = NaN(2000,2);
@@ -33,6 +74,7 @@ for i = 1:singleWidth:width
     click = [0, 0];
     imageShift = [i-1, 0];    
 
+    hold off
     imshow(subImage)
 
     while true        
@@ -84,10 +126,9 @@ for i = 1:singleWidth:width
         end
         drawnow;
     end
-end
 
-delFile = strrep(inPath, ".png", "_delPoints.txt");
-addFile = strrep(inPath, ".png", "_addPoints.txt");
+    i = i + singleWidth;  % next start index
+end
 
 if deleteFirst            
     writematrix(total_1st, delFile);

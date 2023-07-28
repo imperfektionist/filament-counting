@@ -1,5 +1,5 @@
-fp: 184
-tp: 3083
-fn: 67
-precision: 94.4 %
-recall: 97.9 %
+fp: 36
+tp: 3060
+fn: 71
+precision: 98.8 %
+recall: 97.7 %

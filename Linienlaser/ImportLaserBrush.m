@@ -2,118 +2,95 @@
 clc
 close all
 
-userPath = "UserData";
-dataPath = 'C:\Data\FilamentCounting\Linienlaser';
+par.userPath = "UserData";
+par.dataPath = 'C:\Data\FilamentCounting\Linienlaser';
 
-csvFiles = {'BU6981_2U_L.csv'};  % [900 22165]
-% csvFiles = {'BU6981_2U_R.csv'};  % [2634 21157]
+% par.csvFileName = {'BU6981_2U_L.csv'};  % [900 22165]
+par.csvFileName = {'BU6981_2U_R.csv'};  % [2634 21157]
 
-brushDiameter = 150;  % brush outer diameter [mm]
-resolution = 50;  % image output resolution [px/mm] (sensor: 200)
+par.brushDiameter = 150;  % brush outer diameter [mm]
+par.resolution = 50;  % image output resolution [px/mm] (sensor: 200)
 
-trimThresh = [900 22165];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
-filterSize = 50;  % median filter cell height
+par.trimThresh = [2634 21157];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+par.filterSize = 50;  % median filter cell height
 
-initialCutoff = -5;  % set all depths NaN
-initialHeighten = 1;  % add to all datapoints to make positive
-cutoffHeight = 0.4; % Symmetrical cutoff, values outside are set to this
-lowerThreshold = 0.05; % Set values below this threshold to 0
-upperThreshold = 0.95; % Set values above this threshold to 0  
+par.initialCutoff = -3;  % set all depths NaN
+par.initialHeighten = 1;  % add to all datapoints to make positive
+par.cutoffHeight = 0.6; % Symmetrical cutoff, values outside are set to this
+par.lowerThreshold = 0.25; % Set values below this threshold to 0
+par.upperThreshold = 0.85; % Set values above this threshold to 0  
 
-doImport = 1;
-doDetrend = 1;
-plotHistogram = 1;
-plotFilterMask = 0;
-plotImageInitial = 0;
-plotImageFinal = 1;
+par.doImport = 1;
+par.doDetrend = 1;
+par.plotHistogram = 1;
+par.plotFilterMask = 0;
+par.plotImageInitial = 0;
+par.plotImageFinal = 1;
 
-for f = 1:length(csvFiles)
-
-    if doImport
-        csvFileName = csvFiles{f};
-        fullPathDP = fullfile(userPath, ['DP_' csvFileName]);
-    
-        if ~exist(fullPathDP, "file")  % decimal point file does not exist yet
-            fprintf("Importing %s\n", csvFileName)
-            
-            fullFilePath = fullfile(dataPath, csvFileName);  % full path
-            fileContent = fileread(fullFilePath);  % import CSV file
-            fileContent = strrep(fileContent, ',', '.');  % replace commas
-            
-            % Write the modified content to a new file (decimal point)
-            newFileName = ['UserData/DP_' csvFileName];
-            newFile = fopen(newFileName, 'w');
-            fprintf(newFile, '%s', fileContent);
-            fclose(newFile);
-            dataArray = readmatrix(newFileName);  % import as matrix
-                
-        else  % decimal point file already exists
-            fprintf("Importing %s\n", fullPathDP)
-            dataArray = readmatrix(fullPathDP);  % import as matrix
-        end
-    end
-    
-    image = dataArray';  % transpose because image needs to be horizontal
-    
-    image0 = image;  % to save later
-
-    % Stretch image to new resolution (equal axes)
-    circumference = brushDiameter * pi;
-    axDotsNeeded = 16 * resolution;
-    tangDotsNeeded = circumference * resolution;
-    image = imresize(image, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
-    image0 = imresize(image0, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
-
-    % Delete all values below cutoff
-    image(image < initialCutoff) = NaN;
-
-    % Add certain height before proceeding
-    image = image + initialHeighten;
-
-    if doDetrend % detrend -> subtract bilinear median mask
-        image = detrend2D(image, filterSize, plotFilterMask, fullfile(userPath, csvFileName));
-    end
-    
-    % Clamp image to cutoff heights
-    minVal = -cutoffHeight;
-    maxVal = cutoffHeight;
-    image(image < minVal) = minVal;
-    image(image > maxVal) = maxVal;
-    
-    % Normalize image
-    image = (image - minVal) / (maxVal - minVal);
-    
-    % Plot histogram -> should be centered around 0.5
-    if plotHistogram
-        histogram(image(:), 100)
-    end
-    
-    % Make everything outside thresholds black
-    image(image < lowerThreshold) = 0;
-    image(image > upperThreshold) = 0;
-    image(isnan(image)) = 0;
-
-    % Normalize to new extrema
-    image = image / upperThreshold;
-
-    % Trim image to one circumference, marked by the highest point
-    [image, idxLeft, idxRight] = trimLaserImage(image, csvFileName, trimThresh);
-    
-    % Export initial image and show
-    outputFileName = fullfile(userPath, strrep(csvFileName,".csv","_image0.png"));
-    imwrite(image0, outputFileName);
-    if plotImageInitial
-        winopen(outputFileName);
-    end
-
-    % Export final image and show
-    outputFileName = fullfile(userPath, strrep(csvFileName,".csv",".png"));
-    imwrite(image, outputFileName);
-    if plotImageFinal
-        winopen(outputFileName);
-    end
-
+if par.doImport % Import raw laser data from csv file
+    dataArray = importLaser(par);
 end
+
+image = dataArray';  % transpose because image needs to be horizontal
+
+image0 = image;  % to save later
+
+% Stretch image to new resolution (equal axes)
+circumference = par.brushDiameter * pi;
+axDotsNeeded = 16 * par.resolution;
+tangDotsNeeded = circumference * par.resolution;
+image = imresize(image, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
+image0 = imresize(image0, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
+
+% Delete all values below cutoff
+image(image < par.initialCutoff) = NaN;
+
+% Add certain height before proceeding
+image = image + par.initialHeighten;
+
+if par.doDetrend % detrend -> subtract bilinear median mask
+    image = detrend2D(image, par.filterSize, par.plotFilterMask, fullfile(par.userPath, par.csvFileName));
+end
+
+% Clamp image to cutoff heights
+minVal = -par.cutoffHeight;
+maxVal = par.cutoffHeight;
+image(image < minVal) = minVal;
+image(image > maxVal) = maxVal;
+
+% Normalize image
+image = (image - minVal) / (maxVal - minVal);
+
+% Plot histogram -> should be centered around 0.5
+if par.plotHistogram
+    histogram(image(:), 100)
+end
+
+% Make everything outside thresholds black
+image(image < par.lowerThreshold) = 0;
+image(image > par.upperThreshold) = 0;
+image(isnan(image)) = 0;
+
+% Normalize to new extrema
+image = image / par.upperThreshold;
+
+% Trim image to one circumference, marked by the highest point
+[image, idxLeft, idxRight] = trimLaserImage(image, par.csvFileName, par.trimThresh);
+
+% Export initial image and show
+outputFileName = fullfile(par.userPath, strrep(par.csvFileName,".csv","_image0.png"));
+imwrite(image0, outputFileName);
+if par.plotImageInitial
+    winopen(outputFileName);
+end
+
+% Export final image and show
+outputFileName = fullfile(par.userPath, strrep(par.csvFileName,".csv",".png"));
+imwrite(image, outputFileName);
+if par.plotImageFinal
+    winopen(outputFileName);
+end
+
 
 % close all
 

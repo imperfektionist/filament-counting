@@ -6,14 +6,14 @@ outFile = 'BU6981_2U_LR_stitched.txt';
 
 vertSize = 800; % vertical image size [px]
 sizeFac = 2;  % larger than 1 if image was shrunk during processing
-vertShift = 745;  % robot shift between L and R [px]
+vertShift = 690;  % robot shift between L and R [px]
 
-cutoff_hi = 3200;  % discard all filaments above [px]
-cutoff_lo = 0;  % discard all filaments below [px]
+cutoff_hi = 2190;  % discard all filaments above [px]
+cutoff_lo = 70;  % discard all filaments below [px]
 
 minDist = 40;  % minimum px between two filaments (otherwise interpolate)
-xStretchHi = 0.98;
-xStretchLo = 1;
+xStretchHi = 1;
+xStretchLo = 1.148;
 
 diameterBody = 100;  % brush body [mm]
 diameterOuter = 150;  % diameter of water jet circle [mm]
@@ -33,12 +33,7 @@ inFile_lo = fullfile(userPath, csvFiles{2});
 XY_hi = readmatrix(inFile_hi);
 XY_lo = readmatrix(inFile_lo);
 
-if doAddedPoints
-    XY_hi = vertcat(XY_hi, readmatrix(strrep(inFile_hi,".","_addPoints.")));
-    XY_lo = vertcat(XY_lo, readmatrix(strrep(inFile_lo,".","_addPoints.")));
-end
-
-if doDeletedPoints
+if par.doModifiedPoints
     del_hi = readmatrix(strrep(inFile_hi,".","_delPoints."));
     del_lo = readmatrix(strrep(inFile_lo,".","_delPoints."));
     
@@ -59,7 +54,11 @@ if doDeletedPoints
         end
     end
     XY_lo(any(isnan(XY_lo), 2), :) = [];
+
+    XY_hi = vertcat(XY_hi, readmatrix(strrep(inFile_hi,".","_addPoints.")));
+    XY_lo = vertcat(XY_lo, readmatrix(strrep(inFile_lo,".","_addPoints.")));
 end
+
 
 XY_lo = [XY_lo(:,1), vertSize - XY_lo(:,2)] * sizeFac;
 XY_hi = [XY_hi(:,1), vertSize - XY_hi(:,2)] * sizeFac;

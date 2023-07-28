@@ -1,55 +1,74 @@
-% Run ImportLaserBrush.m first!
 close all
 
-analysisResolution = 200;
-measureLength = 150;
+par.userPath = "UserData";
+par.dataPath = 'C:\Data\FilamentCounting\Linienlaser';
 
-heightCutoff = -1;  % set all depths NaN
+% par.csvFileName = {'BU2281_WSS_2U_L.csv'};  % [1870 23656]
+par.csvFileName = {'BU2281_WSS_2U_R.csv'};  % [1615 23345]
+% par.csvFileName = {'BU6981_2U_L.csv'};  % [900 22165]
+% par.csvFileName = {'BU6981_2U_R.csv'};  % [2634 21157]
 
-doModifiedPoints = 1;  % import files with points to add or delete
-dupliDist = 10;  % maximum px for manual duplicate deletion
+par.brushDiameter = 150;  % brush outer diameter [mm]
+par.analysisResolution = 200;  % 200 is maximum resolution
+par.resolution = 50;  % image output resolution [px/mm] (sensor: 200)
 
-smoothSize = 10;  % smooth filament tip profiles
-binWidth = 0.02;  % filament length histogram step
+% par.trimThresh = [1870 23656];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+par.trimThresh = [1615 23345];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+% par.trimThresh = [900 22165];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+% par.trimThresh = [2634 21157];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+par.heightCutoff = -3;  % set all depths NaN
+par.measureLength = 150;  % length of measurement cross [px]
 
-plotInitialImage = 0;
-autoClicking = 1;
-doExportHiRes = 0;
+par.doImport = 1;
+par.doModifiedPoints = 1;  % import files with points to add or delete
+par.plotInitialImage = 1;
+par.autoClicking = 0;
+par.doExportHiRes = 0;
 
-upSizeFactor = analysisResolution / resolution;
+par.axEvalHeight = [4 15]; % discard points above or below [mm] (def: [0 16])
+par.dupliDist = 10;  % maximum px for manual duplicate deletion
+par.smoothSize = 10;  % smooth filament tip profiles
+par.binWidth = 0.02;  % filament length histogram step
+
+upSizeFactor = par.analysisResolution / par.resolution;
 
 % wb = waitbar(0, "Correlating...");
+
+if par.doImport % Import raw laser data from csv file
+    dataArray = importLaser(par);
+end
 
 image = dataArray';
 
 % Stretch image to new resolution (equal axes)
-circumference = brushDiameter * pi;
-axDotsNeeded = 16 * analysisResolution;
-tangDotsNeeded = circumference * analysisResolution;
+circumference = par.brushDiameter * pi;
+axDotsNeeded = 16 * par.analysisResolution;
+tangDotsNeeded = circumference * par.analysisResolution;
 image = imresize(image, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
 
 % Trim image to one circumference, marked by the highest point
-trimThresh = [idxLeft idxRight] * upSizeFactor;
+par.trimThresh = par.trimThresh * upSizeFactor;
+% par.trimThresh = [idxLeft idxRight] * upSizeFactor;
 % trimThresh = 0.95;
 % widthBeforeTrim = size(image,2);
-[image, ~, ~] = trimLaserImage(image, csvFileName, trimThresh);
+[image, idxLeft, idxRight] = trimLaserImage(image, par.csvFileName, par.trimThresh);
 
-if ~autoClicking
-    image(image < heightCutoff) = NaN;
+if ~par.autoClicking
+    image(image < par.heightCutoff) = NaN;
 end
 
 % Get filament center positions
-fileXY = strrep(fullfile(userPath, csvFileName), ".csv", "_hough.txt");
+fileXY = strrep(fullfile(par.userPath, par.csvFileName), ".csv", "_hough.txt");
 centers0 = readmatrix(fileXY);
 centers = centers0;
 
-if doModifiedPoints  % add false negatives
+if par.doModifiedPoints  % add false negatives
         
     centers_del = readmatrix(strrep(fileXY,".","_delPoints."));
 
     for i = 1:size(centers,1)
         for j = 1:size(centers_del)
-            if norm(centers(i,:) - centers_del(j,:)) <= dupliDist
+            if norm(centers(i,:) - centers_del(j,:)) <= par.dupliDist
                 centers(i,1) = NaN;  % mark for deletion
             end
         end
@@ -72,7 +91,7 @@ if doModifiedPoints  % add false negatives
     disp(mldata)
 
     % Write machine learning data to text file
-    outputFileName = fullfile(userPath, strrep(csvFileName,".csv","_mldata.txt"));
+    outputFileName = fullfile(par.userPath, strrep(par.csvFileName,".csv","_mldata.txt"));
     fileID = fopen(outputFileName, 'w');    
     fprintf(fileID, '%s', mldata);
     fclose(fileID);
@@ -84,17 +103,17 @@ centers = centers * upSizeFactor;
 % centers(:,1) = centers (:,1) / widthBeforeTrim * size(image,2);  % new resolution
 
 % Delete margin filaments
-centers = centers(centers(:,1) > measureLength, :);
-centers = centers(centers(:,1) < size(image,2) - measureLength, :);
-centers = centers(centers(:,2) > measureLength, :);
-centers = centers(centers(:,2) < size(image,1) - measureLength, :);
+centers = centers(centers(:,1) > par.measureLength, :);
+centers = centers(centers(:,1) < size(image,2) - par.measureLength, :);
+centers = centers(centers(:,2) > par.measureLength, :);
+centers = centers(centers(:,2) < size(image,1) - par.measureLength, :);
 
-if plotInitialImage
+if par.plotInitialImage
     figure;
-%     imshow(image)
+    imshow(image)
     hold on
-%     plot(centers(:,1), centers(:,2), "g.", "Marker", "+", "MarkerSize", 5, "LineWidth", 1)
-    plot(centers(:,1), centers(:,2), "k.")
+    plot(centers(:,1), centers(:,2), "g.", "Marker", "+", "MarkerSize", 5, "LineWidth", 1)
+%     plot(centers(:,1), centers(:,2), "k.")
 end
 
 profile_fig = figure;
@@ -102,29 +121,40 @@ sub_fig = figure;
 
 i = 1;
 
-mm = -measureLength:measureLength;  % px to mm
-mm = mm / analysisResolution;
+mm = -par.measureLength:par.measureLength;  % px to mm
+mm = mm / par.analysisResolution;
+par.axEvalHeight = par.axEvalHeight * par.analysisResolution;
 
-z_tang_total = zeros(length(mm),1);
-z_ax_total = zeros(length(mm),1);
-z_max = zeros(size(centers,1),1);
+z_max = NaN(size(centers,1),1);
+z_tang_mat = NaN(length(mm),size(centers,1));
+z_ax_mat = NaN(length(mm),size(centers,1));
 
 while true
 
     center = round(centers(i,:));
-    x = center(1)-measureLength:center(1)+measureLength;
-    y = center(2)-measureLength:center(2)+measureLength;
+
+    if center(2) <= par.axEvalHeight(2) && center(2) >= par.axEvalHeight(1)
+        within = 1;
+    else
+        within = 0;
+    end
+
+    x = center(1)-par.measureLength:center(1)+par.measureLength;
+    y = center(2)-par.measureLength:center(2)+par.measureLength;
     z_tang = image(center(2),x)';
     z_ax = image(y,center(1));
 
 
-    if autoClicking  % auto compute all filaments
+    if par.autoClicking  % auto compute all filaments
 
-        z_max(i) = min([max(z_tang) max(z_ax)]);
-
-        % Auto-zero maximum
-        z_tang_total = z_tang_total + z_tang - max(z_tang);
-        z_ax_total = z_ax_total + z_ax - max(z_ax);
+        if within
+            % Take lower value of ax and tang max (less outliers)
+            z_max(i) = min([max(z_tang) max(z_ax)]);
+    
+            % Auto-zero maximum
+            z_tang_mat(:,i) = z_tang - max(z_tang);
+            z_ax_mat(:,i) = z_ax - max(z_ax);
+        end
 
         i = i + 1;
         if i > size(centers,1)
@@ -150,7 +180,7 @@ while true
         if isempty(click)
             break;
         end
-        if click(1) >= measureLength  % click right half
+        if click(1) >= par.measureLength  % click right half
             i = i + 1;  % go foward
         else  % click left half
             i = i - 1;  % go backward
@@ -160,39 +190,40 @@ while true
     i = mod(i, size(centers,1));  % roll around
     if i == 0
         i = size(centers,1);
-        if autoClicking
+        if par.autoClicking
             click = [];
         end
     end
 end
 
-if autoClicking
+if par.autoClicking
     close(sub_fig)
-    z_tang_total = z_tang_total / size(centers,1);
-    z_ax_total = z_ax_total / size(centers,1);
 
-    z_tang_total = smooth(z_tang_total, smoothSize) - max(z_tang_total);
-    z_ax_total = smooth(z_ax_total, smoothSize) - max(z_ax_total);
+    z_tang_mean = nanmean(z_tang_mat,2);
+    z_ax_mean = nanmean(z_ax_mat,2);
 
-    z_tang = z_tang_total;  % to save as file later
-    z_ax = z_ax_total;
+    z_tang_mean = smooth(z_tang_mean, par.smoothSize) - max(z_tang_mean);
+    z_ax_mean = smooth(z_ax_mean, par.smoothSize) - max(z_ax_mean);
 
-    z_tang_total(z_tang_total < heightCutoff) = NaN;
-    z_ax_total(z_ax_total < heightCutoff) = NaN;
+    z_tang = z_tang_mean;  % to save as file later
+    z_ax = z_ax_mean;
+
+    z_tang_mean(z_tang_mean < par.heightCutoff) = NaN;
+    z_ax_mean(z_ax_mean < par.heightCutoff) = NaN;
 
     figure(profile_fig);
     hold off
-    plot(mm,z_tang_total,"k","LineWidth",2);
+    plot(mm,z_tang_mean,"k","LineWidth",2);
     hold on
-    plot(mm,z_ax_total,"b","LineWidth",2);
+    plot(mm,z_ax_mean,"b","LineWidth",2);
     legend(["tangential","axial"],'Location','Best')
     title(sprintf("Tip profiles"));
     xlabel("Width [mm]");
     ylabel("Height [mm]");
-    axis([mm(1) mm(end) heightCutoff 0])
+    axis([mm(1) mm(end) par.heightCutoff 0])
 
     % Save tip profiles as image
-    outputFileName = fullfile(userPath, strrep(csvFileName,".csv","_tip_shape.png"));
+    outputFileName = fullfile(par.userPath, strrep(par.csvFileName,".csv","_tip_shape.png"));
     saveas(gcf, outputFileName);
 
     % Save tip profiles as text
@@ -200,22 +231,22 @@ if autoClicking
     writematrix(horzcat(mm',z_tang,z_ax), outputFileName, "Delimiter","\t");
 
     % Filament length deviation
-    z_max = z_max(z_max > heightCutoff);
+    z_max = z_max(z_max > par.heightCutoff);
     z_max = z_max - median(z_max);
     length_stdev = std(z_max);
 
-    [counts, edges] = histcounts(z_max, 'BinWidth', binWidth);
+    [counts, edges] = histcounts(z_max, 'BinWidth', par.binWidth);
     counts = counts / sum(counts);
 
     figure;
-    bins = edges(1:end-1) + binWidth / 2;
+    bins = edges(1:end-1) + par.binWidth / 2;
     plot(bins, counts,"k","LineWidth",2);
     title(sprintf("Filament length (StdDev = %.4f)",length_stdev));
     xlabel("Filament length deviation [mm]");
     ylabel("Relative Occurrence");
 
     % Save filament length histogram as image
-    outputFileName = fullfile(userPath, strrep(csvFileName,".csv","_tip_hist.png"));
+    outputFileName = fullfile(par.userPath, strrep(par.csvFileName,".csv","_tip_hist.png"));
     saveas(gcf, outputFileName);
 
     % Save filament length histogram as text
@@ -225,8 +256,8 @@ if autoClicking
         
 end
 
-if doExportHiRes  % Export final image and show    
-    outputFileName = fullfile(userPath, strrep(csvFileName,".csv","_hiRes.png"));
+if par.doExportHiRes  % Export final image and show    
+    outputFileName = fullfile(par.userPath, strrep(par.csvFileName,".csv","_hiRes.png"));
     imwrite(image, outputFileName);
     if plotImageFinal
         winopen(outputFileName);

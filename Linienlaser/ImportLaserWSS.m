@@ -7,7 +7,7 @@ close all
 userPath = "UserData";
 dataPath = 'C:\Data\FilamentCounting\Linienlaser';
 
-csvFiles = {'BU2265_WSS_2U_R.csv'};
+csvFiles = {'BU2281_WSS_2U_R.csv'};
 
 brushDiameter = 105;  % brush outer diameter [mm]
 resolution = 50;  % image output resolution [px/mm] (sensor: 200)
