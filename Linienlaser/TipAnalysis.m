@@ -2,18 +2,18 @@
 close all
 
 analysisResolution = 200;
-measureLength = 80;
+measureLength = 150;
 
 heightCutoff = -1;  % set all depths NaN
 
-doModifiedPoints = 0;  % import files with points to add or delete
+doModifiedPoints = 1;  % import files with points to add or delete
 dupliDist = 10;  % maximum px for manual duplicate deletion
 
 smoothSize = 10;  % smooth filament tip profiles
 binWidth = 0.02;  % filament length histogram step
 
-autoClicking = 1;
 plotInitialImage = 0;
+autoClicking = 1;
 doExportHiRes = 0;
 
 upSizeFactor = analysisResolution / resolution;
@@ -41,11 +41,10 @@ end
 % Get filament center positions
 fileXY = strrep(fullfile(userPath, csvFileName), ".csv", "_hough.txt");
 centers0 = readmatrix(fileXY);
+centers = centers0;
 
 if doModifiedPoints  % add false negatives
-    centers_add = readmatrix(strrep(fileXY,".","_addPoints."));
-    centers = vertcat(centers0, centers_add);
-    
+        
     centers_del = readmatrix(strrep(fileXY,".","_delPoints."));
 
     for i = 1:size(centers,1)
@@ -56,6 +55,9 @@ if doModifiedPoints  % add false negatives
         end
     end
     centers(any(isnan(centers), 2), :) = [];
+
+    centers_add = readmatrix(strrep(fileXY,".","_addPoints."));
+    centers = vertcat(centers0, centers_add);
 
     % Calculate machine learning data
     fp = size(centers_del,1);  % false positives
@@ -79,7 +81,7 @@ else
 end
 
 centers = centers * upSizeFactor;
-centers(:,1) = centers (:,1) / widthBeforeTrim * size(image,2);  % new resolution
+% centers(:,1) = centers (:,1) / widthBeforeTrim * size(image,2);  % new resolution
 
 % Delete margin filaments
 centers = centers(centers(:,1) > measureLength, :);
@@ -89,9 +91,10 @@ centers = centers(centers(:,2) < size(image,1) - measureLength, :);
 
 if plotInitialImage
     figure;
-    imshow(image)
+%     imshow(image)
     hold on
-    plot(centers(:,1), centers(:,2), "g.", "Marker", "+", "MarkerSize", 5, "LineWidth", 1)
+%     plot(centers(:,1), centers(:,2), "g.", "Marker", "+", "MarkerSize", 5, "LineWidth", 1)
+    plot(centers(:,1), centers(:,2), "k.")
 end
 
 profile_fig = figure;

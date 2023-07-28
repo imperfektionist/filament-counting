@@ -1,9 +1,9 @@
 % clear
 
-inPath = 'UserData/BU6981_2U_R_hough.png';
+inPath = 'UserData/BU6981_2U_L_hough.png';
 image = imread(inPath);
 
-deleteFirst = 1;  % click once for delete, twice for add
+deleteFirst = 0;  % click once for delete, twice for add
 aspect = 2560/1440;
 
 height = size(image,1);
@@ -98,5 +98,6 @@ else  % add first
     
 end
 
+disp("All done.")
 
 close all

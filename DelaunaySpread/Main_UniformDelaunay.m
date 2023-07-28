@@ -5,12 +5,13 @@ clear
 % par.inFileTrue = 'XY_105x0x0,6_SiC_N10377_df0,613.txt';  % experimental input XY
 par.inFileTrue = 'BU2281_LR_COLL.txt';
 par.importSynth = 1;  % import synthetic distribution instead of making it
+par.useVectorIterate = 0;  % use vector iteration (1) or VAE (0)
 
 par.df = 1.114;             % filament diameter [mm] (set 1 for dependent)
 % par.df = 0.628;             % filament diameter [mm] (set 1 for dependent)
 par.scaleFactor = 1.0;      % scaling factor for all dimensions
-par.skimPercentX = 0;%.02;    % both left and right X
-par.skimPercentY = 0;%.05;    % both top and bottom Y
+par.skimPercentX = 0.02;    % both left and right X
+par.skimPercentY = 0.05;    % both top and bottom Y
 
 par.edgeThresh = [0.1 3];   % min and max triangle edge length [times median]
 par.padWidth = 5;           % padding margin later removed [mm]
@@ -46,8 +47,11 @@ else
     [xy_synth, par] = UniformSpread(xy_true, par);  % initially uniform
 end
 
-% Iteratively spread out synthetic distribution
-[xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par);
+if par.useVectorIterate  % Iteratively spread out synthetic distribution
+    [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par);
+else  % Machine learning approach
+    [xy_synth, DT_synth, EL_synth] = MachineLearning(xy_synth, DT_true, EL_true, par);
+end
 
 % Plot distributions for visual analysis
 PlotAnalysis;

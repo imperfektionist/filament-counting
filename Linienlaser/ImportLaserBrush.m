@@ -5,13 +5,13 @@ close all
 userPath = "UserData";
 dataPath = 'C:\Data\FilamentCounting\Linienlaser';
 
-csvFiles = {'BU6981_2U_R.csv'};  % [2634 21157]
-% csvFiles = {'BU6981_2U_L.csv'};  % [900 22165]
+csvFiles = {'BU6981_2U_L.csv'};  % [900 22165]
+% csvFiles = {'BU6981_2U_R.csv'};  % [2634 21157]
 
 brushDiameter = 150;  % brush outer diameter [mm]
 resolution = 50;  % image output resolution [px/mm] (sensor: 200)
 
-trimThresh = [2634 21157];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+trimThresh = [900 22165];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
 filterSize = 50;  % median filter cell height
 
 initialCutoff = -5;  % set all depths NaN
