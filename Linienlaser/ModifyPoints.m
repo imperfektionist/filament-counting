@@ -1,6 +1,6 @@
 % clear
 
-inPath = 'UserData/BU2281_WSS_2U_L_hough.png';
+inPath = 'UserData/BU6981_2U_R_hough.png';
 image = imread(inPath);
 
 deleteFirst = 1;  % click once for delete, twice for add
@@ -20,13 +20,13 @@ if exist(delFile, "file")
             image = insertMarker(image, total_1st(i,:), 'x', 'Color', 'cyan', "Size", markerSize);            
         end
         for i = 1:size(total_2nd,1)
-            image = insertMarker(image, total_2nd(i,:), '+', 'Color', 'cyan', "Size", markerSize);
+            image = insertMarker(image, total_2nd(i,:), '+', 'Color', 'blue', "Size", markerSize);
         end
     else  % add first
         total_1st = readmatrix(addFile);
         total_2nd = readmatrix(delFile);
         for i = 1:size(total_1st,1)
-            image = insertMarker(image, total_1st(i,:), '+', 'Color', 'cyan', "Size", markerSize);            
+            image = insertMarker(image, total_1st(i,:), '+', 'Color', 'blue', "Size", markerSize);            
         end
         for i = 1:size(total_2nd,1)
             image = insertMarker(image, total_2nd(i,:), 'x', 'Color', 'cyan', "Size", markerSize);

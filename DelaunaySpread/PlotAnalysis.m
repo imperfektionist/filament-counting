@@ -27,6 +27,26 @@ if par.plotDelaunayTrue
     title("Delaunay Triangulation (True)")
 end
 
+% % Plot true delaunay triangulation -> FORMATVORLAGE (SLOW!)
+% if par.plotDelaunaySynth
+%     figure('Position', [0 0 screen_size(3) screen_size(4)]);
+%     radius = par.df/2;
+%     theta = linspace(0, 2*pi, 100);
+%     rct = radius * cos(theta);
+%     rst = radius * sin(theta);
+%     hold on
+%     for i = 1:size(xy_synth,1)
+%         center = xy_synth(i, :);     
+%         x = center(1) + rct;
+%         y = center(2) + rst;
+%         fill(x, y, [159 182 196]/255, 'EdgeColor', 'none');        
+%     end    
+%     hold on
+%     triplot(DT_synth, xy_synth(:,1), xy_synth(:,2), 'k', 'LineWidth', 2);
+%     axis equal
+%     axis off
+% end
+
 % Plot synthetic delaunay triangulation
 if par.plotDelaunaySynth
     figure('Position', [0 0 screen_size(3) screen_size(4)]);
@@ -40,7 +60,7 @@ end
 hist_true = HistogramCurve(EL_true, par.binWidth, par);
 hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
 m_true = median(EL_true) / par.df;
-below_one = HistBelowOne(hist_true, par);
+below_one = HistBelowOne(hist_synth, par);
 rsq = Rsquared(hist_true, hist_synth);
 
 % Calculate and display histogram data

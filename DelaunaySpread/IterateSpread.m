@@ -12,6 +12,14 @@ function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par)
     % Initial triangulation (also for zero iterations)
     [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
     
+    
+    % Histogram of synthetc edge lengths different every iteration
+    hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
+    % Output progress and current residue
+    rsq = Rsquared(hist_true, hist_synth);
+    % Plot frame evolution if enabled
+    FramePlot(0, xy_synth, DT_synth, rsq, par);
+    
     % Iterative algorithm with decreasing step width 1/i
     for iter = 1:par.num_iters
 
@@ -65,7 +73,41 @@ function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par)
         xy_synth = xy_next;
 
         [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
+        FramePlot(iter, xy_synth, DT_synth, rsq, par);
     end
+end
+
+function FramePlot(iter, xy, DT, rsq, par)
+% Plot true delaunay triangulation -> FORMATVORLAGE (SLOW!)
+if par.plotSynthEvolution && (iter < 25 || mod(iter,25) == 0)
+    lims = [10 22 -6 6];
+
+    screen_size = get(0, 'ScreenSize');
+    figure('Position', [0 0 screen_size(4) screen_size(4)]);
+    radius = par.df/2;
+    theta = linspace(0, 2*pi, 100);
+    rct = radius * cos(theta);
+    rst = radius * sin(theta);
+    hold on
+    for i = 1:size(xy,1)
+        center = xy(i, :);
+%         if center(1) < lims(1) || center(1) > lims(2) || ...
+%             center(2) < lims(3) || center(2) > lims(4)
+%             continue;
+%         end
+        x = center(1) + rct;
+        y = center(2) + rst;
+        fill(x, y, [159 182 196]/255, 'EdgeColor', 'none');        
+    end
+    triplot(DT, xy(:,1), xy(:,2), 'k', 'LineWidth', 2);
+    axis(lims);
+    axis equal
+    axis off
+    outPath = sprintf("Userdata/Figures/Evolution/%s_iter_%d_Rsq%.3f.png", ...
+        strrep(par.inFileTrue, '.txt', ''), iter, rsq);
+    saveas(gcf, outPath);
+    close(gcf)
+end
 end
 
 % Map linear x to linear y by specifying two fixed points each

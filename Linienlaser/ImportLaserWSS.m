@@ -7,7 +7,7 @@ close all
 userPath = "UserData";
 dataPath = 'C:\Data\FilamentCounting\Linienlaser';
 
-csvFiles = {'BU2281_WSS_2U_R.csv'};
+csvFiles = {'BU2281_WSS_2U_L.csv'};
 
 brushDiameter = 105;  % brush outer diameter [mm]
 resolution = 50;  % image output resolution [px/mm] (sensor: 200)
@@ -25,8 +25,8 @@ doImport = 1;
 doDetrend = 1;
 plotHistogram = 0;
 plotFilterMask = 0;
-plotImageInitial = 0;
-plotImageFinal = 1;
+plotImageInitial = 1;
+plotImageFinal = 0;
 
 for f = 1:length(csvFiles)
 
@@ -100,7 +100,7 @@ for f = 1:length(csvFiles)
     axDotsNeeded = 16 * resolution;
     tangDotsNeeded = circumference * resolution;
     image = imresize(image, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
-    image0 = imresize(image0, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
+%     image0 = imresize(image0, [axDotsNeeded tangDotsNeeded], 'method', 'bilinear');
 
     % Export initial image and show
     outputFileName = fullfile(userPath, strrep(csvFileName,".csv","_image0.png"));
