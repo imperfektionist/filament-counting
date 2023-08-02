@@ -1,18 +1,20 @@
 % clear
 close all
 
-inPath = 'UserData/BU2281_2U_L.png';
-% inPath = 'UserData/BU2281_2U_R.png';
-resolution = 50;
+inPath = 'UserData/BU2281_WSS_2U_L.png';
+% inPath = 'UserData/BU2281_WSS_2U_R.png';
+% inPath = 'UserData/BU2265_WSS_2U_L.png';
+% inPath = 'UserData/BU2265_WSS_2U_R.png';
+% resolution = 50;
+resolution = 100;
 
-diameter = 56;  % The approximate diameter of the circles you want to detect
+diameter = 112;  % The approximate diameter of the circles you want to detect
+% diameter = 63;  % The approximate diameter of the circles you want to detect
 erodeSize = 0;  % size of erosion disk
-sensitivity = 0.995;  % Adjust this parameter to control circle detection sensitivity
+sensitivity = 0.98;  % Adjust this parameter to control circle detection sensitivity
 radiiRange = [round(0.45 * diameter), round(0.63 * diameter)]; % Allowable range of radii
 minDist = 0.8 * diameter;  % discard weaker circles if too close to stronger circles
 stretch = 1;  % stretch image horizontally
-
-binWidth = 0.02;  % filament diameter histogram step
 
 % discardYBelow = 0;  % Set 0 for RIGHT side (50)
 % discardYAbove = 800;  % Set 3200 for LEFT side
@@ -71,6 +73,8 @@ end
 centers(any(isnan(centers), 2), :) = [];  % remove weak close
 radii(any(isnan(radii), 2), :) = [];  % remove weak close
 
+%%
+
 % Make histogram  of radii
 radii_mm = (radii * 2 - 1) / resolution;
 df_stdev = std(radii_mm);
@@ -85,13 +89,15 @@ title(sprintf("Filament diameter distribution (StdDev = %.4f)",df_stdev));
 xlabel("Filament diameter [mm]");
 ylabel("Relative Occurrence");
 
-% Save filament length histogram as image
+% Save filament diameter histogram as image
 outputFileName = strrep(inPath,".png","_hough_radhist.png");
 saveas(gcf, outputFileName);
 
-% Save filament length histogram as text
+% Save filament diameter histogram as text
 outputFileName = strrep(outputFileName,".png",".txt");
 writematrix(horzcat(bins',counts'), outputFileName, "Delimiter","\t");
+
+
 
 centers(:,1) = centers(:,1) / stretch;  % unstretch image
 
@@ -104,17 +110,17 @@ markedImage = image;
 numCircles = size(centers, 1);
 fprintf("Filaments found: %d\n", numCircles)
 
-for i = 1:numCircles
-    center = centers(i, :);
-    radius = radii(i);
-    markedImage = insertShape(markedImage, 'Circle', [center, radius], 'LineWidth', 4, 'Color', 'red');
-    %markedImage = insertMarker(markedImage, centers(i,:), '+', 'Color', 'red');
-    waitbar(i/numCircles, wb, sprintf("Marking circles %d%%", round(i/numCircles*100)));
-end
-
-% Save the marked image as a new file
-imwrite(markedImage, outImage);
-winopen(outImage);
+% for i = 1:numCircles
+%     center = centers(i, :);
+%     radius = radii(i);
+%     markedImage = insertShape(markedImage, 'Circle', [center, radius], 'LineWidth', 4, 'Color', 'red');
+%     %markedImage = insertMarker(markedImage, centers(i,:), '+', 'Color', 'red');
+%     waitbar(i/numCircles, wb, sprintf("Marking circles %d%%", round(i/numCircles*100)));
+% end
+% 
+% % Save the marked image as a new file
+% imwrite(markedImage, outImage);
+% winopen(outImage);
 
 % imshow(image_bin);
 % imwrite(image_bin, 'hough_image.png');

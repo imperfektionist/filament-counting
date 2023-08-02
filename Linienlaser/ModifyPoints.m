@@ -1,7 +1,9 @@
 % clear
 
-inPath = 'UserData/BU6981_2U_R_hough.png';
+inPath = 'UserData/BU2281_WSS_2U_L_hough.png';
 image = imread(inPath);
+
+% image = double(imbinarize(imread('UserData/BU2281_WSS_2U_L.png')));
 
 deleteFirst = 1;  % click once for delete, twice for add
 aspect = 2560/1440;
@@ -118,11 +120,11 @@ while next_cycle
         hold on
 
         if deleteFirst            
-            plot(xy_1st(:,1), xy_1st(:,2),  "g.", "Marker", "x", "MarkerSize", 20, "LineWidth", 3);
-            plot(xy_2nd(:,1), xy_2nd(:,2), "g.", "Marker", "+", "MarkerSize", 20, "LineWidth", 3);
+            plot(xy_1st(:,1), xy_1st(:,2),  "g.", "Marker", "x", "MarkerSize", markerSize, "LineWidth", lw);
+            plot(xy_2nd(:,1), xy_2nd(:,2), "g.", "Marker", "+", "MarkerSize", markerSize, "LineWidth", lw);
         else  % add first
-            plot(xy_1st(:,1), xy_1st(:,2),  "g.", "Marker", "+", "MarkerSize", 20, "LineWidth", 3);
-            plot(xy_2nd(:,1), xy_2nd(:,2), "g.", "Marker", "x", "MarkerSize", 20, "LineWidth", 3);
+            plot(xy_1st(:,1), xy_1st(:,2),  "g.", "Marker", "+", "MarkerSize", markerSize, "LineWidth", lw);
+            plot(xy_2nd(:,1), xy_2nd(:,2), "g.", "Marker", "x", "MarkerSize", markerSize, "LineWidth", lw);
         end
         drawnow;
     end

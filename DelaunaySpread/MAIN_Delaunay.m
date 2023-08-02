@@ -3,12 +3,15 @@ close all
 
 % par.inFileTrue = 'XY_105x0x1,1_SiC_N4026_df1,126.txt';  % experimental input XY
 % par.inFileTrue = 'XY_105x0x0,6_SiC_N10377_df0,613.txt';  % experimental input XY
-par.inFileTrue = 'BU2281_LR_NOCOLL.txt';
+par.inFileTrue = 'BU2281_LR_COLL.txt';
+par.inFileSynth = 'BU2281_HEXAX_RE100_COLL.txt';
 par.importSynth = 1;  % import synthetic distribution instead of making it
 par.useVectorIterate = 1;  % use vector iteration (1) or ML (0)
 
-par.df = 1.114;             % filament diameter [mm] (set 1 for dependent)
-% par.df = 0.628;             % filament diameter [mm] (set 1 for dependent)
+par.df_true = 1.114;             % filament diameter [mm] (set 1 for dependent)
+% par.df_true = 0.628;             % filament diameter [mm] (set 1 for dependent)
+par.df_synth = 1.114;             % filament diameter [mm] (set 1 for dependent)
+% par.df_synth = 0.628;             % filament diameter [mm] (set 1 for dependent)
 par.scaleFactor = 1;      % scaling factor for all dimensions
 par.skimPercentX = 0.02;    % both left and right X
 par.skimPercentY = 0.05;    % both top and bottom Y
@@ -22,7 +25,7 @@ par.num_iters = 5;         % number of spread iterations
 par.binWidth = 0.01;        % edge length bin width
 par.smoothHistogram = 0;    % do smooth histogram for calculation and plots
 par.smoothWidth = 0.01;      % moving average filter width
-par.histLimits = [0 3.2];   % histogram x axis limits 
+par.histLimits = [0.8 1.8];   % histogram x axis limits 
 
 par.plotXY = 0;             % figure for XY filament positions
 par.plotDelaunayTrue = 0;   % figure for triangulation of actual distribution

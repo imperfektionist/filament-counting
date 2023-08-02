@@ -3,29 +3,42 @@ close all
 par.userPath = "UserData";
 par.dataPath = 'C:\Data\FilamentCounting\Linienlaser';
 
-% par.csvFileName = {'BU2281_WSS_2U_L.csv'};  % [1870 23656]
-par.csvFileName = {'BU2281_WSS_2U_R.csv'};  % [1615 23345]
-% par.csvFileName = {'BU6981_2U_L.csv'};  % [900 22165]
-% par.csvFileName = {'BU6981_2U_R.csv'};  % [2634 21157]
+par.csvFileName = 'BU2281_WSS_2U_L.csv';  % [1195 15111], HS: 0.8435
+% par.csvFileName = 'BU2281_WSS_2U_R.csv';  % [1016 14685]
+% par.csvFileName = 'BU6981_2U_L.csv';  % [900 22165]
+% par.csvFileName = 'BU6981_2U_R.csv';  % [2634 21157]
 
-par.brushDiameter = 150;  % brush outer diameter [mm]
-par.analysisResolution = 200;  % 200 is maximum resolution
-par.resolution = 50;  % image output resolution [px/mm] (sensor: 200)
-
-% par.trimThresh = [1870 23656];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
-par.trimThresh = [1615 23345];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+par.trimThresh = [1195 15111];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+% par.trimThresh = [1016 14685];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
 % par.trimThresh = [900 22165];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
 % par.trimThresh = [2634 21157];  % 0.95 for WSS, -1 for clicking, [x1 x2] for known 
+
+par.brushDiameter = 105;  % brush outer diameter [mm]
+par.analysisResolution = 200;  % 200 is maximum resolution
+par.resolution = 50;  % image output resolution [px/mm] (sensor: 200)
+par.horzStretch = 0.8435;
+
 par.heightCutoff = -3;  % set all depths NaN
 par.measureLength = 150;  % length of measurement cross [px]
 
 par.doImport = 1;
 par.doModifiedPoints = 1;  % import files with points to add or delete
-par.plotInitialImage = 1;
-par.autoClicking = 0;
+
+par.plotInitialImage = 0;
+
+par.doEccentricity = 1;
+par.cellSizeVert = 50;
+par.cellStretchFactor = 20;  % cell width to cell height ratio
+par.plotFilterMask = 0;
+
+par.autoClicking = 1;
+par.plotTipAnalysis = 0;
+par.plotLengthAnalysis = 0;
 par.doExportHiRes = 0;
 
-par.axEvalHeight = [4 15]; % discard points above or below [mm] (def: [0 16])
+par.saveSubImages = -1;  % make negative to disable
+
+par.axEvalHeight = [0 16]; % discard points above or below [mm] (def: [0 16])
 par.dupliDist = 10;  % maximum px for manual duplicate deletion
 par.smoothSize = 10;  % smooth filament tip profiles
 par.binWidth = 0.02;  % filament length histogram step
@@ -100,7 +113,7 @@ else
 end
 
 centers = centers * upSizeFactor;
-% centers(:,1) = centers (:,1) / widthBeforeTrim * size(image,2);  % new resolution
+centers(:,1) = centers (:,1) * par.horzStretch;
 
 % Delete margin filaments
 centers = centers(centers(:,1) > par.measureLength, :);
@@ -112,9 +125,11 @@ if par.plotInitialImage
     figure;
     imshow(image)
     hold on
-    plot(centers(:,1), centers(:,2), "g.", "Marker", "+", "MarkerSize", 5, "LineWidth", 1)
-%     plot(centers(:,1), centers(:,2), "k.")
+    plot(centers(:,1), centers(:,2), "g.", "Marker", "+", "MarkerSize", 3, "LineWidth", 1)
 end
+
+%%
+
 
 profile_fig = figure;
 sub_fig = figure;
@@ -143,6 +158,16 @@ while true
     y = center(2)-par.measureLength:center(2)+par.measureLength;
     z_tang = image(center(2),x)';
     z_ax = image(y,center(1));
+
+    % Save image of filament tip
+    if ismember(i, par.saveSubImages)
+        subimage = image(y,x) - median(image(y,x)) + 0.7;%+ 0.1 + rand * 0.8;
+        subPath = strrep(par.csvFileName,".csv",sprintf("_%d.png",i));
+        subPath = fullfile("UserData","Subs",subPath);
+        imwrite(subimage, subPath);
+
+%         ans = horzcat(mm', z_tang, z_ax);
+    end
 
 
     if par.autoClicking  % auto compute all filaments
@@ -197,7 +222,6 @@ while true
 end
 
 if par.autoClicking
-    close(sub_fig)
 
     z_tang_mean = nanmean(z_tang_mat,2);
     z_ax_mean = nanmean(z_ax_mat,2);
@@ -238,7 +262,7 @@ if par.autoClicking
     [counts, edges] = histcounts(z_max, 'BinWidth', par.binWidth);
     counts = counts / sum(counts);
 
-    figure;
+    length_fig = figure;
     bins = edges(1:end-1) + par.binWidth / 2;
     plot(bins, counts,"k","LineWidth",2);
     title(sprintf("Filament length (StdDev = %.4f)",length_stdev));

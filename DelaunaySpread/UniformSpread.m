@@ -43,7 +43,7 @@ Nf = Nb * Nh;  % recalculate total number
 
 xy_synth = zeros(Nf, 2);  % init
 xy_rand_phi = rand(Nf,1) * 2 * pi;  % noise angle
-xy_rand_rad = rand(Nf,1) * par.df;  % noise radius
+xy_rand_rad = rand(Nf,1) * par.df_synth;  % noise radius
 
 i = 1;
 for y = 1:Nh  % cycle through grid rows

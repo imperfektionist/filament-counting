@@ -27,10 +27,20 @@ if par.plotDelaunayTrue
     title("Delaunay Triangulation (True)")
 end
 
+% Plot synthetic delaunay triangulation
+if par.plotDelaunaySynth
+    figure('Position', [0 0 screen_size(3) screen_size(4)]);
+    triplot(DT_synth, xy_synth(:,1), xy_synth(:,2), 'r');
+    hold on
+    PlotTrueLimits(gcf, par.lim_synth, 'k');
+    axis equal
+    title("Delaunay Triangulation (Synth)")
+end
+
 % % Plot true delaunay triangulation -> FORMATVORLAGE (SLOW!)
 % if par.plotDelaunaySynth
 %     figure('Position', [0 0 screen_size(3) screen_size(4)]);
-%     radius = par.df/2;
+%     radius = par.df_synth/2;
 %     theta = linspace(0, 2*pi, 100);
 %     rct = radius * cos(theta);
 %     rst = radius * sin(theta);
@@ -47,48 +57,63 @@ end
 %     axis off
 % end
 
-% Plot synthetic delaunay triangulation
-if par.plotDelaunaySynth
-    figure('Position', [0 0 screen_size(3) screen_size(4)]);
-    triplot(DT_synth, xy_synth(:,1), xy_synth(:,2), 'r');
-    hold on
-    PlotTrueLimits(gcf, par.lim_synth, 'k');
-    axis equal
-    title("Delaunay Triangulation (Synth)")
-end
+% Normalize edge lengths by filament diameter
+ELD_true = EL_true / par.df_true;
+ELD_synth = EL_synth / par.df_synth;
 
-hist_true = HistogramCurve(EL_true, par.binWidth, par);
-hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
-m_true = median(EL_true) / par.df;
-below_one = HistBelowOne(hist_synth, par);
+% ELn_true = ELn_true(ELn_true < 2);
+% ELn_synth = ELb_synth(ELb_synth < 2);
+ELD_true = ELD_true(ELD_true >= par.histLimits(1));
+ELD_synth = ELD_synth(ELD_synth >= par.histLimits(1));
+ELD_true = ELD_true(ELD_true <= par.histLimits(2));
+ELD_synth = ELD_synth(ELD_synth <= par.histLimits(2));
+
+% Calculate histograms and standard deviation
+hist_true = HistogramCurve(ELD_true, par.binWidth, par);
+hist_synth = HistogramCurve(ELD_synth, hist_true.edges, par);
+below_one = HistBelowOne(hist_synth);
 rsq = Rsquared(hist_true, hist_synth);
+std_true = std(ELD_true);
+std_synth = std(ELD_synth);
 
-% Calculate and display histogram data
+% Display histogram data
 if par.plotHistogram
     figure;
-    plot(hist_true.centers / par.df, hist_true.counts, 'k')
-    hold on 
-    plot(hist_synth.centers / par.df, hist_synth.counts, 'r') 
-    plot([m_true m_true], [0 max(hist_true.counts)], 'b--')
+    plot(hist_true.centers, hist_true.counts, 'k')
+    hold on
+    plot(hist_synth.centers, hist_synth.counts, 'r')
     plot([1 1], [0 max(hist_true.counts)], 'k--')
     xlim(par.histLimits);
-    legend('True','Synth','Median',sprintf('%.1f %%',below_one))    
+    yl = ylim;
+    text(par.histLimits(1)+0.05, yl(2)*0.9, sprintf("σ_t = %.3f\nσ_s = %.3f", ...
+        std_true, std_synth));
+    legend('True','Synth',sprintf('%.1f %%',below_one))    
     title(sprintf("Histogram (R^2 = %.3f)", rsq))
-    xlabel('Filament Spacing [mm/d_f]')
+    xlabel('Dimensionless Filament Spacing [-]')
     ylabel('Relative Occurrence [-]')
 end
 
 % Calculate and display accumulated histogram data
 if par.plotAccumulated
     figure;
-    plot(hist_true.centers / par.df, hist_true.accum, 'k')
-    hold on
-    plot(hist_synth.centers / par.df, hist_synth.accum, 'r') 
-    plot([m_true m_true], [0 1], 'b--')
-    plot([1 1], [0 1], 'k--')
+    plot(hist_true.centers, hist_true.accum, 'k')
+    hold on 
+    plot(hist_synth.centers, hist_synth.accum, 'r')
+    plot([1 1], [0 max(hist_true.counts)], 'k--')
     xlim(par.histLimits);
-    legend('True','Synth','Median',sprintf('%.1f %%',below_one))
+    yl = ylim;
+    text(par.histLimits(1)+0.05, yl(2)*0.9, sprintf("σ_t = %.3f\nσ_s = %.3f", ...
+        std_true, std_synth));
+    legend('True','Synth',sprintf('%.1f %%',below_one)) 
     title(sprintf("Accum. Histogram (R^2 = %.3f)", rsq))
-    xlabel('Filament Spacing [mm/d_f]')
+    xlabel('Dimensionless Filament Spacing [-]')
     ylabel('Relative Occurrence [-]')
+end
+
+% Determine the ratio of histogram data below X = 1
+% These are all filament spacings smaller than filament diameter
+function ratio = HistBelowOne(hg)
+    centers = hg.centers;  % normalize
+    N = length(centers(centers < 1));  % number of points
+    ratio = sum(hg.counts(1:N)) / sum(hg.counts) * 100;
 end
