@@ -1,4 +1,4 @@
-function [xy_synth, DT_synth, EL_synth] = IterateSpread(xy_synth, EL_true, par)
+function [xy_synth, DT_synth, EL_synth, EA_synth, par] = IterateSpread(xy_synth, EL_true, p_synth, par)
 
 if par.importSynth
     EL_thresh_synth = par.edgeThresh;  % max edge lengths should be the same
@@ -14,13 +14,17 @@ EL_max = hist_true.centers(end);  % longest edge length
 m = median(EL_true);
 
 % Initial triangulation (also for zero iterations)
-[DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
+[DT_synth, EL_synth, EA_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
 
+hist_cum = zeros(length(hist_true.centers),3);
+hist_cum(:,1) = hist_true.centers;
+hist_cum(:,2) = hist_true.accum;
 
 % Histogram of synthetc edge lengths different every iteration
 hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
 % Output progress and current residue
 rsq = Rsquared(hist_true, hist_synth);
+par.rsq(1, p_synth) = rsq;  % store R-squared
 % Plot frame evolution if enabled
 FramePlot(0, xy_synth, DT_synth, rsq, par);
 
@@ -30,8 +34,22 @@ for iter = 1:par.num_iters
     % Histogram of synthetc edge lengths different every iteration
     hist_synth = HistogramCurve(EL_synth, hist_true.edges, par);
 
+    if iter < 0  % plot cumulated histogram
+        figure;
+        hist_cum(:,3) = hist_synth.accum;
+        center_vals = hist_cum(:, 1);
+        valid_rows = (center_vals >= par.histLimits(1)) & (center_vals <= par.histLimits(2));    
+        hist_cum_trimmed = hist_cum(valid_rows, :);
+        plot(hist_cum_trimmed(:,1),hist_cum_trimmed(:,2),'k');
+        hold on
+        plot(hist_cum_trimmed(:,1),hist_cum_trimmed(:,3),'r');
+        title(iter)
+        writematrix(hist_cum_trimmed, "hist_cum.txt", 'Delimiter', '\t');
+    end
+
     % Output progress and current residue
     rsq = Rsquared(hist_true, hist_synth);
+    par.rsq(iter+1, p_synth) = rsq;  % store R-squared
     fprintf("Iteration: %d/%d (R² = %.3f)\n", iter, par.num_iters, rsq)
 
     %fileID = fopen('rsq_opt.txt', 'a');
@@ -68,15 +86,21 @@ for iter = 1:par.num_iters
             %xy_next(p,:) = xy_next(p,:) + s / iter;  % absolute shift
 
             % Based on accummulated edge length histogram -> more accurate
+            %idx = LinearMap(d, EL_min, EL_max, 1, num_bins);  % bin number
+            %epsilon = hist_true.accum(idx) - hist_synth.accum(idx);  % residue
+            %s = c * (1 - m * (1 - epsilon) / d) / iter;  % shift vector
+            %xy_next(p,:) = xy_next(p,:) + s;  % absolute shift
+
+            % Based on accummulated edge length histogram -> more accurate
             idx = LinearMap(d, EL_min, EL_max, 1, num_bins);  % bin number
             epsilon = hist_true.accum(idx) - hist_synth.accum(idx);  % residue
-            s = c * (1 - m * (1 - epsilon) / d) / iter;  % shift vector
+            s = c * (1 - m * sign(1 - epsilon)*abs((1 - epsilon)^par.p_synth(p_synth)) / d) / iter;  % shift vector
             xy_next(p,:) = xy_next(p,:) + s;  % absolute shift
         end
     end
     xy_synth = xy_next;
 
-    [DT_synth, EL_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
+    [DT_synth, EL_synth, EA_synth] = DelaunayTriangulation(xy_synth, EL_thresh_synth);
     FramePlot(iter, xy_synth, DT_synth, rsq, par);
 end
 end

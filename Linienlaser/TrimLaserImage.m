@@ -8,7 +8,7 @@ if length(maxThresh) == 2  % known trim interval
     idxLeft = maxThresh(1);
     idxRight = maxThresh(2);
 
-elseif maxThresh == -1  % manual clicking of trim intervals
+elseif maxThresh < 0  % manual clicking of trim intervals
     figure;
     screenSize = get(0, 'ScreenSize');
     set(gcf, 'Position', screenSize);
@@ -41,8 +41,8 @@ else  % auto maximum trim intervals
     idxRight = halfWidth + find(row(halfWidth+1:width) >= maxVal, 1, 'first');
 end
 
-fprintf("Left margin: %d of %d\n", idxLeft, width);
-fprintf("Right margin: %d of %d\n", idxRight, width);
+fprintf("Left margin: %d\n", idxLeft);
+fprintf("Right margin: %d\n", idxRight);
     
 % Trim data to new interval
 data = data(:,idxLeft:idxRight);

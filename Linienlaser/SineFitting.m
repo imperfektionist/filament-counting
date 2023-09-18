@@ -13,6 +13,7 @@ data = load(file_name);
 
 n = round(length(data));
 y = data(1:100:n);
+
 x = 1:length(y);  % Assume x values are just indices of data points
 
 % Perform sinusoidal fitting using the provided approach
@@ -51,4 +52,5 @@ legend('Data', 'Fitted Sine Curve');
 grid on;
 hold off;
 
-writematrix(horzcat(y',yp'), "eccentricity_fitted.txt", 'Delimiter','\t')
+writematrix(horzcat(x',y'), "eccentricity_fitted.txt", 'Delimiter','\t')
+% writematrix(horzcat(y',yp'), "eccentricity_fitted.txt", 'Delimiter','\t')

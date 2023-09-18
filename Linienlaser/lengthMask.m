@@ -69,24 +69,34 @@ end
 
 % env_tang = mean(envelope,1);
 % env_ax = mean(envelope,2);
+% env_tang = median(envelope,1);
+% env_ax = median(envelope,2);
 % env_tang = min(envelope,[],1);
 % env_ax = min(envelope,[],2);
 env_tang = max(envelope,[],1);
 env_ax = max(envelope,[],2);
 
-writematrix(env_tang, "eccentricity.txt")
+num_points = 300;
+ecc = env_tang(1:round(length(env_tang)/num_points):end)';
+ecc = ecc - median(ecc);
+Omg = 1:length(ecc);
+ecc = horzcat(Omg', ecc);
+outputFileName = strrep(filePath,".csv","_eccentricity.txt");
+writematrix(ecc, outputFileName, 'Delimiter', '\t')
 
 % Subtracting median cells from data to detrend
 data = data - envelope;
 
-figure;
-subplot(2,1,1)
-plot(env_tang, 'k', 'LineWidth', 2)
-subtitle('Tangential eccentricity')
-
-subplot(2,1,2)
-plot(env_ax, 'b', 'LineWidth', 2)
-subtitle('Axial slope')
+if par.plotEccentricity
+    figure;
+    subplot(2,1,1)
+    plot(env_tang, 'k', 'LineWidth', 2)
+    subtitle('Tangential eccentricity')
+    
+    subplot(2,1,2)
+    plot(env_ax, 'b', 'LineWidth', 2)
+    subtitle('Axial slope')
+end
 
 
 outputFileName = strrep(filePath,".csv","_lengthmask_data.png");
