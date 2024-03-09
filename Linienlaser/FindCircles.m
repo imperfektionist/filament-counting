@@ -31,7 +31,7 @@ image_bin = imresize(image_bin, size(image) .* [1 stretch], "method", "bilinear"
 wb = waitbar(0, "Finding circles...");
 
 [circleCenters, circleRadii, circleMetric] = imfindcircles(image_bin, radiiRange,...
-    'Sensitivity', sensitivity,'ObjectPolarity','bright', 'Method', 'TwoStage');
+    'Sensitivity', sensitivity, 'ObjectPolarity', 'bright', 'Method', 'TwoStage');
 
 centers = circleCenters;
 radii = circleRadii;
